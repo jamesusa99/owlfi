@@ -1,9 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <circle cx="32" cy="32" r="30" fill="#1e3a5f"/>
-  <circle cx="32" cy="28" r="8" fill="#d4a84b"/>
-  <circle cx="28" cy="26" r="2" fill="#1a2b3c"/>
-  <circle cx="36" cy="26" r="2" fill="#1a2b3c"/>
-  <path d="M24 38 Q32 46 40 38" stroke="#d4a84b" stroke-width="2" fill="none"/>
-  <path d="M20 20 L24 16 L28 20" stroke="#d4a84b" stroke-width="1.5" fill="none"/>
-  <path d="M36 20 L40 16 L44 20" stroke="#d4a84b" stroke-width="1.5" fill="none"/>
+  <defs>
+    <linearGradient id="fg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="fg2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d4a84b"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" stroke="url(#fg1)" stroke-width="2" fill="none" opacity="0.9"/>
+  <polygon points="32,10 52,24 52,44 32,54 12,44 12,24" fill="url(#fg1)" fill-opacity="0.2" stroke="url(#fg1)" stroke-width="1"/>
+  <ellipse cx="32" cy="28" rx="12" ry="10" fill="url(#fg1)" fill-opacity="0.4"/>
+  <circle cx="26" cy="25" r="5" fill="#0f172a" stroke="url(#fg2)" stroke-width="2"/>
+  <circle cx="38" cy="25" r="5" fill="#0f172a" stroke="url(#fg2)" stroke-width="2"/>
+  <circle cx="26" cy="25" r="1.5" fill="url(#fg2)"/>
+  <circle cx="38" cy="25" r="1.5" fill="url(#fg2)"/>
+  <path d="M28 34 Q32 37 36 34" stroke="url(#fg2)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M18 18 L23 10 L28 18" stroke="url(#fg2)" stroke-width="1" fill="none"/>
+  <path d="M46 18 L41 10 L36 18" stroke="url(#fg2)" stroke-width="1" fill="none"/>
 </svg>

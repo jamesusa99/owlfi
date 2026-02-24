@@ -1,6 +1,9 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import Logo from './Logo'
 
 const titles: Record<string, string> = {
+  '/forum': '用户论坛',
+  '/forum/create': '发帖',
   '/': '猫头鹰基金研究院',
   '/classroom': '微课堂',
   '/portfolio': '我的组合',
@@ -35,6 +38,7 @@ const titles: Record<string, string> = {
 }
 
 const matchTitle = (path: string): string | null => {
+  if (path.startsWith('/forum/post/')) return '帖子详情'
   if (path.startsWith('/fund/')) return '基金详情'
   if (path.startsWith('/portfolio/') && path.includes('/subscribe/success')) return '申购成功'
   if (path.startsWith('/portfolio/') && path.includes('/subscribe')) return '申购'
@@ -76,7 +80,14 @@ export default function Header() {
             ← 返回
           </button>
         )}
-        <h1 className="text-base md:text-lg font-semibold truncate">{title}</h1>
+        {!isSubPage && location.pathname === '/' ? (
+          <div className="flex items-center gap-2">
+            <Logo size={28} />
+            <h1 className="text-base md:text-lg font-semibold truncate hidden sm:block">{title}</h1>
+          </div>
+        ) : (
+          <h1 className="text-base md:text-lg font-semibold truncate">{title}</h1>
+        )}
       </div>
     </header>
   )

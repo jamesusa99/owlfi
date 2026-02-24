@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
+import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Classroom from './pages/Classroom'
 import Portfolio from './pages/Portfolio'
@@ -51,11 +52,16 @@ import OrderDetail from './pages/OrderDetail'
 import NotificationDetail from './pages/NotificationDetail'
 import CardAddSuccess from './pages/CardAddSuccess'
 import FeedbackSuccess from './pages/FeedbackSuccess'
+import Login from './pages/Login'
+import Forum from './pages/Forum'
+import ForumPost from './pages/ForumPost'
+import ForumCreate from './pages/ForumCreate'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/login" element={<Login />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="classroom" element={<Classroom />} />
@@ -85,28 +91,31 @@ function App() {
           <Route path="tools/inflation" element={<ToolInflation />} />
           <Route path="news" element={<NewsList />} />
           <Route path="news/:id" element={<NewsDetail />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="profile/orders" element={<ProfileOrders />} />
-          <Route path="profile/cards" element={<ProfileCards />} />
-          <Route path="profile/cards/add" element={<ProfileCardAdd />} />
-          <Route path="profile/notifications" element={<ProfileNotifications />} />
+          <Route path="forum" element={<Forum />} />
+          <Route path="forum/post/:id" element={<ForumPost />} />
+          <Route path="forum/create" element={<ProtectedRoute><ForumCreate /></ProtectedRoute>} />
+          <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="profile/orders" element={<ProtectedRoute><ProfileOrders /></ProtectedRoute>} />
+          <Route path="profile/cards" element={<ProtectedRoute><ProfileCards /></ProtectedRoute>} />
+          <Route path="profile/cards/add" element={<ProtectedRoute><ProfileCardAdd /></ProtectedRoute>} />
+          <Route path="profile/notifications" element={<ProtectedRoute><ProfileNotifications /></ProtectedRoute>} />
           <Route path="profile/help" element={<ProfileHelp />} />
           <Route path="profile/help/faq" element={<ProfileHelpFaqList />} />
           <Route path="profile/help/faq/:id" element={<ProfileHelpFaq />} />
           <Route path="profile/help/about" element={<ProfileHelpAbout />} />
-          <Route path="profile/settings" element={<ProfileSettings />} />
-          <Route path="profile/settings/security" element={<ProfileSettingsSecurity />} />
-          <Route path="profile/settings/notification" element={<ProfileSettingsNotification />} />
-          <Route path="profile/settings/privacy" element={<ProfileSettingsPrivacy />} />
-          <Route path="profile/support" element={<ProfileSupport />} />
-          <Route path="profile/support/chat" element={<ChatSupport />} />
-          <Route path="profile/feedback" element={<ProfileFeedback />} />
+          <Route path="profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+          <Route path="profile/settings/security" element={<ProtectedRoute><ProfileSettingsSecurity /></ProtectedRoute>} />
+          <Route path="profile/settings/notification" element={<ProtectedRoute><ProfileSettingsNotification /></ProtectedRoute>} />
+          <Route path="profile/settings/privacy" element={<ProtectedRoute><ProfileSettingsPrivacy /></ProtectedRoute>} />
+          <Route path="profile/support" element={<ProtectedRoute><ProfileSupport /></ProtectedRoute>} />
+          <Route path="profile/support/chat" element={<ProtectedRoute><ChatSupport /></ProtectedRoute>} />
+          <Route path="profile/feedback" element={<ProtectedRoute><ProfileFeedback /></ProtectedRoute>} />
           <Route path="profile/feedback/success" element={<FeedbackSuccess />} />
           <Route path="profile/orders/:id" element={<OrderDetail />} />
           <Route path="profile/notifications/:id" element={<NotificationDetail />} />
           <Route path="profile/cards/add/success" element={<CardAddSuccess />} />
-          <Route path="profile/settings/security/change-password" element={<ChangePassword />} />
-          <Route path="profile/settings/security/change-phone" element={<ChangePhone />} />
+          <Route path="profile/settings/security/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+          <Route path="profile/settings/security/change-phone" element={<ProtectedRoute><ChangePhone /></ProtectedRoute>} />
           <Route path="profile/help/user-agreement" element={<UserAgreement />} />
           <Route path="profile/help/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="*" element={<Navigate to="/" replace />} />

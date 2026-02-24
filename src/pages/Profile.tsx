@@ -1,20 +1,34 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Profile() {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* 用户信息卡片 */}
       <section className="bg-gradient-to-br from-[var(--owl-primary)] to-[var(--owl-secondary)] rounded-2xl p-6 text-white mb-6 shadow-lg">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-3xl">
-            👤
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-3xl">
+              👤
+            </div>
+            <div>
+              <h3 className="text-lg font-medium">{user?.nickname || '投资用户'}</h3>
+              <p className="text-white/80 text-sm">{user?.phone || '—'}</p>
+              <p className="text-white/70 text-xs mt-0.5">ID: {user?.userId || '—'}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-medium">投资用户</h3>
-            <p className="text-white/80 text-sm">ID: 10086</p>
-          </div>
+          <button
+            onClick={() => {
+              logout()
+              navigate('/login')
+            }}
+            className="px-4 py-2 bg-white/20 rounded-lg text-sm hover:bg-white/30"
+          >
+            退出登录
+          </button>
         </div>
       </section>
 

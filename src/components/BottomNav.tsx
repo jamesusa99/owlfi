@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 const navItems = [
   { path: '/', label: '首页', icon: '🏠' },
+  { path: '/forum', label: '论坛', icon: '💬' },
   { path: '/classroom', label: '微课堂', icon: '📚' },
   { path: '/portfolio', label: '组合', icon: '📊' },
   { path: '/tools', label: '工具', icon: '🔧' },

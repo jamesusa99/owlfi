@@ -2,7 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import Header from './Header'
 import BottomNav from './BottomNav'
 
-const mainPaths = ['/', '/classroom', '/portfolio', '/tools', '/profile']
+const mainPaths = ['/', '/forum', '/classroom', '/portfolio', '/tools', '/profile']
 
 export default function Layout() {
   const location = useLocation()

@@ -1,13 +1,27 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Home() {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* 欢迎横幅 */}
       <section className="bg-gradient-to-br from-[var(--owl-primary)] to-[var(--owl-secondary)] rounded-2xl p-6 text-white mb-6 shadow-lg">
-        <h2 className="text-lg font-semibold mb-1">智能投顾 · 综合策略管理平台</h2>
-        <p className="text-white/90 text-sm">专业资产配置 · 科学投资决策</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-semibold mb-1">智能投顾 · 综合策略管理平台</h2>
+            <p className="text-white/90 text-sm">专业资产配置 · 科学投资决策</p>
+          </div>
+          {!isAuthenticated && (
+            <button
+              onClick={() => navigate('/login')}
+              className="px-4 py-2 bg-white/20 rounded-lg text-sm hover:bg-white/30 shrink-0"
+            >
+              登录
+            </button>
+          )}
+        </div>
       </section>
 
       {/* 资产概览 */}

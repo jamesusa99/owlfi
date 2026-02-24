@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import type { AdminCourse } from './adminData'
-import type { Lesson } from '../data/courses'
-import { getAdminCourses, saveAdminCourses, nextCourseId, nextLessonId } from './adminData'
+import type { AdminCourse, AdminLesson } from '../lib/adminDb'
+import { fetchCourses, saveCourse, deleteCourse, nextLessonId } from '../lib/adminDb'
 import AdminConfirmModal from './AdminConfirmModal'
 
 function CourseForm({
@@ -39,7 +38,7 @@ function CourseForm({
     setForm({ ...form, lessons: form.lessons.filter((_, i) => i !== idx) })
   }
 
-  const updateLesson = (idx: number, field: keyof Lesson, value: string) => {
+  const updateLesson = (idx: number, field: keyof AdminLesson, value: string) => {
     const next = [...form.lessons]
     next[idx] = { ...next[idx], [field]: value }
     setForm({ ...form, lessons: next })
@@ -193,32 +192,51 @@ function CourseForm({
 
 export default function AdminCourses() {
   const [courses, setCourses] = useState<AdminCourse[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [formCourse, setFormCourse] = useState<AdminCourse | null | 'add'>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
-  useEffect(() => {
-    setCourses(getAdminCourses())
-  }, [])
-
-  const handleSave = (c: AdminCourse) => {
-    if (formCourse === 'add') {
-      const id = c.id || nextCourseId(courses)
-      const next = [...courses, { ...c, id }]
-      setCourses(next)
-      saveAdminCourses(next)
-    } else if (formCourse) {
-      const next = courses.map((x) => (x.id === c.id ? c : x))
-      setCourses(next)
-      saveAdminCourses(next)
+  const load = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await fetchCourses()
+      setCourses(data)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '加载失败')
+    } finally {
+      setLoading(false)
     }
-    setFormCourse(null)
   }
 
-  const handleDelete = (id: number) => {
-    const next = courses.filter((x) => x.id !== id)
-    setCourses(next)
-    saveAdminCourses(next)
-    setDeleteId(null)
+  useEffect(() => {
+    load()
+  }, [])
+
+  const handleSave = async (c: AdminCourse) => {
+    setSaving(true)
+    setError(null)
+    try {
+      await saveCourse(c)
+      setFormCourse(null)
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '保存失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteCourse(id)
+      setCourses((prev) => prev.filter((x) => x.id !== id))
+      setDeleteId(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '删除失败')
+    }
   }
 
   return (
@@ -229,6 +247,12 @@ export default function AdminCourses() {
           + 添加课程
         </button>
       </div>
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>
+      )}
+      {loading ? (
+        <div className="py-12 text-center text-[#6b7c8d]">加载中...</div>
+      ) : (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full">
           <thead>
@@ -256,7 +280,12 @@ export default function AdminCourses() {
           </tbody>
         </table>
       </div>
-
+      )}
+      {saving && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-xl px-6 py-4">保存中...</div>
+        </div>
+      )}
       {formCourse && formCourse !== 'add' && <CourseForm course={formCourse} onSave={handleSave} onCancel={() => setFormCourse(null)} />}
       {formCourse === 'add' && <CourseForm course={null} onSave={handleSave} onCancel={() => setFormCourse(null)} />}
       {deleteId !== null && (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import type { AdminForumPost } from './adminData'
-import { getAdminForum, saveAdminForum } from './adminData'
+import type { AdminForumPost } from '../lib/adminDb'
+import { fetchForumPosts, saveForumPost, deleteForumPost } from '../lib/adminDb'
 import AdminConfirmModal from './AdminConfirmModal'
 
 function ForumForm({
@@ -122,32 +122,51 @@ function ForumForm({
 
 export default function AdminForum() {
   const [list, setList] = useState<AdminForumPost[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [formItem, setFormItem] = useState<AdminForumPost | null | 'add'>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
-  useEffect(() => {
-    setList(getAdminForum())
-  }, [])
-
-  const handleSave = (p: AdminForumPost) => {
-    if (formItem === 'add') {
-      const id = p.id || Math.max(0, ...list.map((x) => x.id)) + 1
-      const next = [...list, { ...p, id }]
-      setList(next)
-      saveAdminForum(next)
-    } else if (formItem) {
-      const next = list.map((x) => (x.id === p.id ? p : x))
-      setList(next)
-      saveAdminForum(next)
+  const load = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await fetchForumPosts()
+      setList(data)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '加载失败')
+    } finally {
+      setLoading(false)
     }
-    setFormItem(null)
   }
 
-  const handleDelete = (id: number) => {
-    const next = list.filter((x) => x.id !== id)
-    setList(next)
-    saveAdminForum(next)
-    setDeleteId(null)
+  useEffect(() => {
+    load()
+  }, [])
+
+  const handleSave = async (p: AdminForumPost) => {
+    setSaving(true)
+    setError(null)
+    try {
+      await saveForumPost(p)
+      setFormItem(null)
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '保存失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteForumPost(id)
+      setList((prev) => prev.filter((x) => x.id !== id))
+      setDeleteId(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '删除失败')
+    }
   }
 
   return (
@@ -158,6 +177,10 @@ export default function AdminForum() {
           + 添加帖子
         </button>
       </div>
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
+      {loading ? (
+        <div className="py-12 text-center text-[#6b7c8d]">加载中...</div>
+      ) : (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full">
           <thead>
@@ -197,7 +220,12 @@ export default function AdminForum() {
           </tbody>
         </table>
       </div>
-
+      )}
+      {saving && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-xl px-6 py-4">保存中...</div>
+        </div>
+      )}
       {formItem && formItem !== 'add' && <ForumForm post={formItem} onSave={handleSave} onCancel={() => setFormItem(null)} />}
       {formItem === 'add' && <ForumForm post={null} onSave={handleSave} onCancel={() => setFormItem(null)} />}
       {deleteId !== null && (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import type { AdminNews } from './adminData'
-import { getAdminNews, saveAdminNews } from './adminData'
+import type { AdminNews } from '../lib/adminDb'
+import { fetchNews, saveNewsItem, deleteNews } from '../lib/adminDb'
 import AdminConfirmModal from './AdminConfirmModal'
 
 function NewsForm({ news, onSave, onCancel }: { news: AdminNews | null; onSave: (n: AdminNews) => void; onCancel: () => void }) {
@@ -57,32 +57,51 @@ function NewsForm({ news, onSave, onCancel }: { news: AdminNews | null; onSave: 
 
 export default function AdminNews() {
   const [list, setList] = useState<AdminNews[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [formItem, setFormItem] = useState<AdminNews | null | 'add'>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
-  useEffect(() => {
-    setList(getAdminNews())
-  }, [])
-
-  const handleSave = (n: AdminNews) => {
-    if (formItem === 'add') {
-      const id = n.id || Math.max(0, ...list.map((x) => x.id)) + 1
-      const next = [...list, { ...n, id }]
-      setList(next)
-      saveAdminNews(next)
-    } else if (formItem) {
-      const next = list.map((x) => (x.id === n.id ? n : x))
-      setList(next)
-      saveAdminNews(next)
+  const load = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await fetchNews()
+      setList(data)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '加载失败')
+    } finally {
+      setLoading(false)
     }
-    setFormItem(null)
   }
 
-  const handleDelete = (id: number) => {
-    const next = list.filter((x) => x.id !== id)
-    setList(next)
-    saveAdminNews(next)
-    setDeleteId(null)
+  useEffect(() => {
+    load()
+  }, [])
+
+  const handleSave = async (n: AdminNews) => {
+    setSaving(true)
+    setError(null)
+    try {
+      await saveNewsItem(n)
+      setFormItem(null)
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '保存失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteNews(id)
+      setList((prev) => prev.filter((x) => x.id !== id))
+      setDeleteId(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '删除失败')
+    }
   }
 
   return (
@@ -93,35 +112,45 @@ export default function AdminNews() {
           + 添加资讯
         </button>
       </div>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-[#f5f7fa] border-b border-gray-200">
-              <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">ID</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">标题</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">状态</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">发布时间</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d] w-28">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((n) => (
-              <tr key={n.id} className="border-b border-gray-100 hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm text-[#1a2b3c]">{n.id}</td>
-                <td className="px-4 py-3 text-sm text-[#1a2b3c]">{n.title}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded text-xs ${n.status === '已发布' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{n.status}</span>
-                </td>
-                <td className="px-4 py-3 text-sm text-[#6b7c8d]">{n.publishTime}</td>
-                <td className="px-4 py-3">
-                  <button onClick={() => setFormItem(n)} className="text-[#1e3a5f] text-sm mr-2 hover:underline">编辑</button>
-                  <button onClick={() => setDeleteId(n.id)} className="text-red-600 text-sm hover:underline">删除</button>
-                </td>
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
+      {loading ? (
+        <div className="py-12 text-center text-[#6b7c8d]">加载中...</div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-[#f5f7fa] border-b border-gray-200">
+                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">ID</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">标题</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">状态</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">发布时间</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d] w-28">操作</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {list.map((n) => (
+                <tr key={n.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="px-4 py-3 text-sm text-[#1a2b3c]">{n.id}</td>
+                  <td className="px-4 py-3 text-sm text-[#1a2b3c]">{n.title}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded text-xs ${n.status === '已发布' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{n.status}</span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-[#6b7c8d]">{n.publishTime}</td>
+                  <td className="px-4 py-3">
+                    <button onClick={() => setFormItem(n)} className="text-[#1e3a5f] text-sm mr-2 hover:underline">编辑</button>
+                    <button onClick={() => setDeleteId(n.id)} className="text-red-600 text-sm hover:underline">删除</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {saving && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-xl px-6 py-4">保存中...</div>
+        </div>
+      )}
       {formItem && formItem !== 'add' && <NewsForm news={formItem} onSave={handleSave} onCancel={() => setFormItem(null)} />}
       {formItem === 'add' && <NewsForm news={null} onSave={handleSave} onCancel={() => setFormItem(null)} />}
       {deleteId !== null && (

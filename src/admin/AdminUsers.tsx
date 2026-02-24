@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import type { AdminUser } from './adminUsersData'
-import { getAdminUsers, saveAdminUsers, generateUserId } from './adminUsersData'
+import type { AdminUser } from '../lib/adminDb'
+import { fetchUsers, saveUser, deleteUser, generateUserId } from '../lib/adminDb'
 
 interface UserFormProps {
   user: AdminUser | null
@@ -109,31 +109,51 @@ function UserForm({ user, onSave, onCancel }: UserFormProps) {
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<AdminUser[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [formUser, setFormUser] = useState<AdminUser | null | 'add'>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
-  useEffect(() => {
-    setUsers(getAdminUsers())
-  }, [])
-
-  const handleSave = (u: AdminUser) => {
-    if (formUser === 'add') {
-      const next = [...users, u]
-      setUsers(next)
-      saveAdminUsers(next)
-    } else if (formUser) {
-      const next = users.map((x) => (x.id === u.id ? u : x))
-      setUsers(next)
-      saveAdminUsers(next)
+  const load = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await fetchUsers()
+      setUsers(data)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '加载失败')
+    } finally {
+      setLoading(false)
     }
-    setFormUser(null)
   }
 
-  const handleDelete = (id: string) => {
-    const next = users.filter((x) => x.id !== id)
-    setUsers(next)
-    saveAdminUsers(next)
-    setDeleteId(null)
+  useEffect(() => {
+    load()
+  }, [])
+
+  const handleSave = async (u: AdminUser) => {
+    setSaving(true)
+    setError(null)
+    try {
+      await saveUser(u)
+      setFormUser(null)
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '保存失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteUser(id)
+      setUsers((prev) => prev.filter((x) => x.id !== id))
+      setDeleteId(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '删除失败')
+    }
   }
 
   return (
@@ -147,69 +167,81 @@ export default function AdminUsers() {
           + 添加用户
         </button>
       </div>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-[#f5f7fa] border-b border-gray-200">
-                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">用户ID</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">手机号</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">昵称</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">注册时间</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">订单数</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">状态</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d] w-24">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-[#1a2b3c] font-mono">{u.id}</td>
-                  <td className="px-4 py-3 text-sm text-[#1a2b3c]">{u.phone}</td>
-                  <td className="px-4 py-3 text-sm text-[#1a2b3c]">{u.nickname}</td>
-                  <td className="px-4 py-3 text-sm text-[#6b7c8d]">{u.regTime}</td>
-                  <td className="px-4 py-3 text-sm text-[#1a2b3c]">{u.orders}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`px-2 py-0.5 rounded text-xs ${
-                        u.status === '正常' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {u.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setFormUser(u)}
-                        className="text-[#1e3a5f] text-sm hover:underline"
-                      >
-                        编辑
-                      </button>
-                      <button
-                        onClick={() => setDeleteId(u.id)}
-                        className="text-red-600 text-sm hover:underline"
-                      >
-                        删除
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+          {error}
         </div>
-      </div>
+      )}
+      {loading ? (
+        <div className="py-12 text-center text-[#6b7c8d]">加载中...</div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-[#f5f7fa] border-b border-gray-200">
+                  <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">用户ID</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">手机号</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">昵称</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">注册时间</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">订单数</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d]">状态</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-[#6b7c8d] w-24">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-[#1a2b3c] font-mono">{u.id}</td>
+                    <td className="px-4 py-3 text-sm text-[#1a2b3c]">{u.phone}</td>
+                    <td className="px-4 py-3 text-sm text-[#1a2b3c]">{u.nickname}</td>
+                    <td className="px-4 py-3 text-sm text-[#6b7c8d]">{u.regTime}</td>
+                    <td className="px-4 py-3 text-sm text-[#1a2b3c]">{u.orders}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-0.5 rounded text-xs ${
+                          u.status === '正常' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {u.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setFormUser(u)}
+                          className="text-[#1e3a5f] text-sm hover:underline"
+                        >
+                          编辑
+                        </button>
+                        <button
+                          onClick={() => setDeleteId(u.id)}
+                          className="text-red-600 text-sm hover:underline"
+                        >
+                          删除
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-      {/* 添加/编辑弹窗 */}
       {formUser && formUser !== 'add' && (
         <UserForm user={formUser} onSave={handleSave} onCancel={() => setFormUser(null)} />
       )}
       {formUser === 'add' && (
         <UserForm user={null} onSave={handleSave} onCancel={() => setFormUser(null)} />
       )}
+      {saving && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-xl px-6 py-4">保存中...</div>
+        </div>
+      )}
 
-      {/* 删除确认弹窗 */}
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full">

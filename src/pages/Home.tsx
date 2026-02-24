@@ -262,7 +262,7 @@ export default function Home() {
             <p className="text-sm text-[var(--owl-text-muted)] mt-1">累计路演</p>
             <p className="text-xs text-[var(--owl-accent)]">高频度</p>
           </div>
-          <div onClick={() => navigate('/profile/help/about')} className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+          <div onClick={() => navigate('/institutional')} className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
             <p className="text-2xl font-bold text-[var(--owl-primary)]">200+</p>
             <p className="text-sm text-[var(--owl-text-muted)] mt-1">机构客户</p>
             <p className="text-xs text-[var(--owl-accent)]">覆盖广</p>

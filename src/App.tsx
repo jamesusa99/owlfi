@@ -76,6 +76,7 @@ import MarketIndicators from './pages/MarketIndicators'
 import MarketIndicatorDetail from './pages/MarketIndicatorDetail'
 import ClassroomCategory from './pages/ClassroomCategory'
 import HotNews from './pages/HotNews'
+import InstitutionalClients from './pages/InstitutionalClients'
 
 function App() {
   return (
@@ -123,6 +124,7 @@ function App() {
           <Route path="research/fund-profile" element={<FundProfile />} />
           <Route path="market/indicators" element={<MarketIndicators />} />
           <Route path="market/indicators/:name" element={<MarketIndicatorDetail />} />
+          <Route path="institutional" element={<InstitutionalClients />} />
           <Route path="forum" element={<Forum />} />
           <Route path="forum/post/:id" element={<ForumPost />} />
           <Route path="forum/create" element={<ProtectedRoute><ForumCreate /></ProtectedRoute>} />

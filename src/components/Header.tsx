@@ -25,6 +25,7 @@ const titles: Record<string, string> = {
   '/profile/help': '帮助中心',
   '/profile/help/faq': '常见问题',
   '/profile/help/about': '关于我们',
+  '/institutional': '机构客户',
   '/profile/settings': '设置',
   '/profile/settings/security': '账号安全',
   '/profile/settings/notification': '通知设置',

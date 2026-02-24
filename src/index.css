@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  --owl-primary: #1e3a5f;
+  --owl-secondary: #2d5a87;
+  --owl-accent: #d4a84b;
+  --owl-bg: #f5f7fa;
+  --owl-card: #ffffff;
+  --owl-text: #1a2b3c;
+  --owl-text-muted: #6b7c8d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--owl-bg);
+  color: var(--owl-text);
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Safe area for notch devices */
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}

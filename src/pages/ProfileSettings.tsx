@@ -1,6 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 
 const settingsMenus = [
+  { label: '我的订单', path: '/profile/orders' },
+  { label: '银行卡管理', path: '/profile/cards' },
+  { label: '消息通知', path: '/profile/notifications' },
   { label: '账号安全', path: '/profile/settings/security' },
   { label: '通知设置', path: '/profile/settings/notification' },
   { label: '隐私设置', path: '/profile/settings/privacy' },

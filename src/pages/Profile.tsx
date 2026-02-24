@@ -1,94 +1,183 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+
+const quickItems = [
+  { icon: '🛍️', label: '行情商城', path: '/profile/market-mall' },
+  { icon: '🎁', label: '我的奖励', path: '/profile/rewards' },
+  { icon: '🎫', label: '我的卡券', path: '/profile/coupons' },
+]
+
+const menuGroups = [
+  [
+    { icon: '📋', label: '任务中心', path: '/profile/tasks' },
+    { icon: '🏠', label: '积分商城', path: '/profile/points-mall' },
+    { icon: '🔥', label: '活动中心', path: '/profile/activities' },
+  ],
+  [
+    { icon: '🎧', label: '我的客服', path: '/profile/support' },
+    { icon: '❓', label: '帮助中心', path: '/profile/help' },
+    { icon: '🛡️', label: '反欺诈专区', path: '/profile/anti-fraud' },
+  ],
+  [
+    { icon: '💬', label: '功能建议', path: '/profile/feedback' },
+  ],
+  [
+    { icon: '⚙️', label: '设置', path: '/profile/settings' },
+  ],
+]
 
 export default function Profile() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const [showCertBanner, setShowCertBanner] = useState(true)
+  const [showNps, setShowNps] = useState(true)
+  const [npsScore, setNpsScore] = useState<number | null>(null)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* 用户信息卡片 */}
-      <section className="bg-gradient-to-br from-[var(--owl-primary)] to-[var(--owl-secondary)] rounded-2xl p-6 text-white mb-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-3xl">
-              👤
-            </div>
-            <div>
-              <h3 className="text-lg font-medium">{user?.nickname || '投资用户'}</h3>
-              <p className="text-white/80 text-sm">{user?.phone || '—'}</p>
-              <p className="text-white/70 text-xs mt-0.5">ID: {user?.userId || '—'}</p>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              logout()
-              navigate('/login')
-            }}
-            className="px-4 py-2 bg-white/20 rounded-lg text-sm hover:bg-white/30"
-          >
-            退出登录
-          </button>
-        </div>
-      </section>
+    <div className="min-h-screen bg-[#1a1d21]">
+      {/* 背景装饰 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
+        <svg className="w-full h-64" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="profileWaves" x="0" y="0" width="60" height="30" patternUnits="userSpaceOnUse">
+              <path d="M0 15 Q15 10 30 15 T60 15" stroke="#d4a84b" strokeWidth="0.5" fill="none" />
+              <path d="M0 20 Q15 15 30 20 T60 20" stroke="#d4a84b" strokeWidth="0.3" fill="none" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#profileWaves)" />
+        </svg>
+      </div>
 
-      {/* 风险等级 */}
-      <section
-        onClick={() => navigate('/tools/risk')}
-        className="bg-white rounded-2xl p-5 shadow-sm mb-6 cursor-pointer hover:bg-gray-50 transition-colors"
-      >
-        <div className="flex justify-between items-center">
-          <div>
-            <h4 className="font-medium text-[var(--owl-text)]">风险测评</h4>
-            <p className="text-sm text-[var(--owl-text-muted)]">稳健型 · 上次测评 2024-01-15</p>
+      <div className="relative max-w-7xl mx-auto px-4 pt-6 pb-8">
+        {/* 用户信息头部 */}
+        <section className="flex items-center gap-4 mb-6">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#2d3748] to-[#1a202c] flex items-center justify-center text-3xl shrink-0 border-2 border-[#d4a84b]/30">
+            🦉
           </div>
-          <span className="text-[var(--owl-primary)] text-sm font-medium">去测评 ›</span>
-        </div>
-      </section>
-
-      {/* 功能菜单 */}
-      <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        {[
-          { icon: '📄', label: '我的订单', path: '/profile/orders' },
-          { icon: '💳', label: '银行卡管理', path: '/profile/cards' },
-          { icon: '🔔', label: '消息通知', path: '/profile/notifications' },
-          { icon: '❓', label: '帮助中心', path: '/profile/help' },
-          { icon: '⚙️', label: '设置', path: '/profile/settings' },
-        ].map((item) => (
-          <div
-            key={item.label}
-            onClick={() => navigate(item.path)}
-            className="flex items-center justify-between px-5 py-4 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xl">{item.icon}</span>
-              <span className="text-[var(--owl-text)]">{item.label}</span>
-            </div>
-            <span className="text-[var(--owl-text-muted)]">›</span>
+          <div className="flex-1 min-w-0">
+            <span className="inline-block px-3 py-1 bg-[#2d3748] text-[#d4a84b] text-xs rounded-full mb-1 flex items-center gap-1 w-fit">
+              <span>★</span> 私享客户
+            </span>
+            <h3 className="text-white text-lg font-medium truncate">{user?.nickname || '投资用户'}</h3>
+            <p className="text-gray-400 text-sm">猫头鹰号: {user?.userId || '—'}</p>
           </div>
-        ))}
-      </section>
+        </section>
 
-      {/* 客服 */}
-      <section className="mt-6 flex gap-4">
-        <button
-          onClick={() => navigate('/profile/support')}
-          className="flex-1 py-3 bg-white rounded-xl shadow-sm text-[var(--owl-text)] font-medium"
+        {/* 关联账户卡片 */}
+        <section
+          onClick={() => navigate('/profile/associated-account')}
+          className="bg-[#252830] rounded-2xl p-4 mb-4 flex items-center justify-between cursor-pointer hover:bg-[#2d3239] transition-colors"
         >
-          在线客服
-        </button>
-        <button
-          onClick={() => navigate('/profile/feedback')}
-          className="flex-1 py-3 bg-white rounded-xl shadow-sm text-[var(--owl-text)] font-medium"
-        >
-          投诉建议
-        </button>
-      </section>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#1a1d21] flex items-center justify-center text-xl">👤</div>
+            <span className="text-white font-medium">关联账户</span>
+          </div>
+          <span className="text-gray-500">›</span>
+        </section>
 
-      {/* 版本信息 */}
-      <p className="text-center text-xs text-[var(--owl-text-muted)] mt-8 pb-4">
-        猫头鹰基金研究院 v1.0.0
-      </p>
+        {/* 快捷入口三格 */}
+        <section className="grid grid-cols-3 gap-3 mb-4">
+          {quickItems.map((item) => (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className="bg-[#252830] rounded-xl py-4 flex flex-col items-center gap-2 hover:bg-[#2d3239] transition-colors"
+            >
+              <span className="text-2xl">{item.icon}</span>
+              <span className="text-white text-sm">{item.label}</span>
+            </button>
+          ))}
+        </section>
+
+        {/* 专业投资者认证横幅 */}
+        {showCertBanner && (
+          <section className="relative bg-[#252830] rounded-2xl p-5 mb-4 overflow-hidden">
+            <button
+              onClick={() => setShowCertBanner(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-300 text-lg"
+            >
+              ×
+            </button>
+            <div className="flex justify-between items-start">
+              <div>
+                <h4 className="text-white font-bold text-base mb-1">专业投资者认证</h4>
+                <p className="text-gray-400 text-sm">解锁更多产品,享更多权益</p>
+              </div>
+              <span className="text-[#d4a84b] text-5xl font-light opacity-60">V</span>
+            </div>
+          </section>
+        )}
+
+        {/* 功能菜单 */}
+        <section className="space-y-1 mb-6">
+          {menuGroups.map((group, gi) => (
+            <div key={gi} className="bg-[#252830] rounded-2xl overflow-hidden">
+              {group.map((item) => (
+                <div
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className={`flex items-center justify-between px-4 py-4 cursor-pointer hover:bg-[#2d3239] transition-colors ${
+                    group.indexOf(item) < group.length - 1 ? 'border-b border-[#1a1d21]/50' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">{item.icon}</span>
+                    <span className="text-white">{item.label}</span>
+                  </div>
+                  <span className="text-gray-500">›</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </section>
+
+        {/* NPS 推荐问卷 */}
+        {showNps && (
+          <section className="relative bg-[#252830] rounded-2xl p-5 mb-6">
+            <button
+              onClick={() => setShowNps(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-300 text-lg"
+            >
+              ×
+            </button>
+            <p className="text-white font-medium mb-4">你会愿意向亲朋好友推荐猫头鹰基金研究院吗?</p>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-gray-400 text-xs">不推荐</span>
+              <div className="flex-1 flex gap-1">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setNpsScore(n)}
+                    className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
+                      npsScore === n
+                        ? 'bg-[#d4a84b] text-[#1a1d21]'
+                        : 'bg-[#1a1d21] text-gray-400 hover:bg-[#2d3239] hover:text-white'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <span className="text-gray-400 text-xs">十分推荐</span>
+            </div>
+          </section>
+        )}
+
+        {/* 退出登录 */}
+        <button
+          onClick={() => {
+            logout()
+            navigate('/login')
+          }}
+          className="w-full py-3 text-gray-400 text-sm hover:text-white transition-colors"
+        >
+          退出登录
+        </button>
+
+        {/* 版本 */}
+        <p className="text-center text-xs text-gray-500 mt-6">猫头鹰基金研究院 v1.0.0</p>
+      </div>
     </div>
   )
 }

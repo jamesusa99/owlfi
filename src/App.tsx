@@ -44,6 +44,14 @@ import ProfileSettingsNotification from './pages/ProfileSettingsNotification'
 import ProfileSettingsPrivacy from './pages/ProfileSettingsPrivacy'
 import ProfileSupport from './pages/ProfileSupport'
 import ProfileFeedback from './pages/ProfileFeedback'
+import ProfileTasks from './pages/ProfileTasks'
+import ProfilePointsMall from './pages/ProfilePointsMall'
+import ProfileActivities from './pages/ProfileActivities'
+import ProfileMarketMall from './pages/ProfileMarketMall'
+import ProfileRewards from './pages/ProfileRewards'
+import ProfileCoupons from './pages/ProfileCoupons'
+import ProfileAntiFraud from './pages/ProfileAntiFraud'
+import ProfileAssociatedAccount from './pages/ProfileAssociatedAccount'
 import ChangePassword from './pages/ChangePassword'
 import ChangePhone from './pages/ChangePhone'
 import UserAgreement from './pages/UserAgreement'
@@ -119,6 +127,14 @@ function App() {
           <Route path="forum/post/:id" element={<ForumPost />} />
           <Route path="forum/create" element={<ProtectedRoute><ForumCreate /></ProtectedRoute>} />
           <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="profile/tasks" element={<ProtectedRoute><ProfileTasks /></ProtectedRoute>} />
+          <Route path="profile/points-mall" element={<ProtectedRoute><ProfilePointsMall /></ProtectedRoute>} />
+          <Route path="profile/activities" element={<ProtectedRoute><ProfileActivities /></ProtectedRoute>} />
+          <Route path="profile/market-mall" element={<ProtectedRoute><ProfileMarketMall /></ProtectedRoute>} />
+          <Route path="profile/rewards" element={<ProtectedRoute><ProfileRewards /></ProtectedRoute>} />
+          <Route path="profile/coupons" element={<ProtectedRoute><ProfileCoupons /></ProtectedRoute>} />
+          <Route path="profile/anti-fraud" element={<ProfileAntiFraud />} />
+          <Route path="profile/associated-account" element={<ProtectedRoute><ProfileAssociatedAccount /></ProtectedRoute>} />
           <Route path="profile/orders" element={<ProtectedRoute><ProfileOrders /></ProtectedRoute>} />
           <Route path="profile/cards" element={<ProtectedRoute><ProfileCards /></ProtectedRoute>} />
           <Route path="profile/cards/add" element={<ProtectedRoute><ProfileCardAdd /></ProtectedRoute>} />

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { AdminRoadshowEvent, RoadshowStatus, RoadshowMaterial } from '../lib/adminDb'
+import type { AdminRoadshowEvent, RoadshowStatus } from '../lib/adminDb'
 import {
   fetchRoadshowEvents,
   saveRoadshowEvent,

@@ -126,15 +126,15 @@ function App() {
           <Route path="forum" element={<Forum />} />
           <Route path="forum/post/:id" element={<ForumPost />} />
           <Route path="forum/create" element={<ProtectedRoute><ForumCreate /></ProtectedRoute>} />
-          <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="profile/tasks" element={<ProtectedRoute><ProfileTasks /></ProtectedRoute>} />
-          <Route path="profile/points-mall" element={<ProtectedRoute><ProfilePointsMall /></ProtectedRoute>} />
-          <Route path="profile/activities" element={<ProtectedRoute><ProfileActivities /></ProtectedRoute>} />
-          <Route path="profile/market-mall" element={<ProtectedRoute><ProfileMarketMall /></ProtectedRoute>} />
-          <Route path="profile/rewards" element={<ProtectedRoute><ProfileRewards /></ProtectedRoute>} />
-          <Route path="profile/coupons" element={<ProtectedRoute><ProfileCoupons /></ProtectedRoute>} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="profile/tasks" element={<ProfileTasks />} />
+          <Route path="profile/points-mall" element={<ProfilePointsMall />} />
+          <Route path="profile/activities" element={<ProfileActivities />} />
+          <Route path="profile/market-mall" element={<ProfileMarketMall />} />
+          <Route path="profile/rewards" element={<ProfileRewards />} />
+          <Route path="profile/coupons" element={<ProfileCoupons />} />
           <Route path="profile/anti-fraud" element={<ProfileAntiFraud />} />
-          <Route path="profile/associated-account" element={<ProtectedRoute><ProfileAssociatedAccount /></ProtectedRoute>} />
+          <Route path="profile/associated-account" element={<ProfileAssociatedAccount />} />
           <Route path="profile/orders" element={<ProtectedRoute><ProfileOrders /></ProtectedRoute>} />
           <Route path="profile/cards" element={<ProtectedRoute><ProfileCards /></ProtectedRoute>} />
           <Route path="profile/cards/add" element={<ProtectedRoute><ProfileCardAdd /></ProtectedRoute>} />
@@ -143,7 +143,7 @@ function App() {
           <Route path="profile/help/faq" element={<ProfileHelpFaqList />} />
           <Route path="profile/help/faq/:id" element={<ProfileHelpFaq />} />
           <Route path="profile/help/about" element={<ProfileHelpAbout />} />
-          <Route path="profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+          <Route path="profile/settings" element={<ProfileSettings />} />
           <Route path="profile/settings/security" element={<ProtectedRoute><ProfileSettingsSecurity /></ProtectedRoute>} />
           <Route path="profile/settings/notification" element={<ProtectedRoute><ProfileSettingsNotification /></ProtectedRoute>} />
           <Route path="profile/settings/privacy" element={<ProtectedRoute><ProfileSettingsPrivacy /></ProtectedRoute>} />

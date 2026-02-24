@@ -55,13 +55,25 @@ export default function Profile() {
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#2d3748] to-[#1a202c] flex items-center justify-center text-3xl shrink-0 border-2 border-[#d4a84b]/30">
             🦉
           </div>
-          <div className="flex-1 min-w-0">
-            <span className="inline-block px-3 py-1 bg-[#2d3748] text-[#d4a84b] text-xs rounded-full mb-1 flex items-center gap-1 w-fit">
-              <span>★</span> 私享客户
-            </span>
-            <h3 className="text-white text-lg font-medium truncate">{user?.nickname || '投资用户'}</h3>
-            <p className="text-gray-400 text-sm">猫头鹰号: {user?.userId || '—'}</p>
-          </div>
+          {user ? (
+            <div className="flex-1 min-w-0">
+              <span className="inline-block px-3 py-1 bg-[#2d3748] text-[#d4a84b] text-xs rounded-full mb-1 flex items-center gap-1 w-fit">
+                <span>★</span> 私享客户
+              </span>
+              <h3 className="text-white text-lg font-medium truncate">{user.nickname}</h3>
+              <p className="text-gray-400 text-sm">猫头鹰号: {user.userId}</p>
+            </div>
+          ) : (
+            <div className="flex-1 min-w-0 flex flex-col gap-2">
+              <p className="text-gray-400 text-sm">登录后享受更多权益</p>
+              <button
+                onClick={() => navigate('/login')}
+                className="px-4 py-2 bg-[#d4a84b] text-[#1a1d21] rounded-lg text-sm font-medium w-fit hover:opacity-90"
+              >
+                登录 / 注册
+              </button>
+            </div>
+          )}
         </section>
 
         {/* 关联账户卡片 */}
@@ -164,16 +176,18 @@ export default function Profile() {
           </section>
         )}
 
-        {/* 退出登录 */}
-        <button
-          onClick={() => {
-            logout()
-            navigate('/login')
-          }}
-          className="w-full py-3 text-gray-400 text-sm hover:text-white transition-colors"
-        >
-          退出登录
-        </button>
+        {/* 退出登录 / 登录 */}
+        {user ? (
+          <button
+            onClick={() => {
+              logout()
+              navigate('/login')
+            }}
+            className="w-full py-3 text-gray-400 text-sm hover:text-white transition-colors"
+          >
+            退出登录
+          </button>
+        ) : null}
 
         {/* 版本 */}
         <p className="text-center text-xs text-gray-500 mt-6">猫头鹰基金研究院 v1.0.0</p>

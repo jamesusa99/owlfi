@@ -1,20 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { courses } from '../data/courses'
 
 export default function Classroom() {
   const navigate = useNavigate()
-  const courses = [
-    { id: 1, title: '基金投资入门：从零开始学理财', type: '视频', duration: '15分钟', tag: '入门', thumbnail: '📖' },
-    { id: 2, title: '资产配置的核心逻辑与实战', type: '图文', duration: '8分钟', tag: '进阶', thumbnail: '📊' },
-    { id: 3, title: '如何评估基金的风险与收益', type: '视频', duration: '22分钟', tag: '进阶', thumbnail: '🎯' },
-    { id: 4, title: '定投策略：微笑曲线的秘密', type: '图文', duration: '6分钟', tag: '入门', thumbnail: '📈' },
-    { id: 5, title: '行业轮动与景气度投资', type: '视频', duration: '30分钟', tag: '高级', thumbnail: '🔄' },
-    { id: 6, title: 'ETF投资完全指南', type: '图文', duration: '12分钟', tag: '进阶', thumbnail: '📋' },
-  ]
+  const [selectedCat, setSelectedCat] = useState('全部')
+  const filteredCourses = selectedCat === '全部'
+    ? courses
+    : courses.filter((c) => c.tag === selectedCat || c.type === selectedCat)
 
   const categories = ['全部', '入门', '进阶', '高级', '视频', '图文']
-  const [selectedCat, setSelectedCat] = useState('全部')
-  const filteredCourses = selectedCat === '全部' ? courses : courses.filter((c) => c.tag === selectedCat || c.type === selectedCat)
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">

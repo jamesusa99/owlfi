@@ -17,7 +17,6 @@ export default function AdminSeries() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [editing, setEditing] = useState<AdminCourseSeries | null>(null)
   const [form, setForm] = useState<AdminCourseSeries>(emptySeries())
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -41,12 +40,10 @@ export default function AdminSeries() {
 
   const openNew = () => {
     setForm(emptySeries())
-    setEditing(null)
     setShowForm(true)
   }
   const openEdit = (s: AdminCourseSeries) => {
     setForm({ ...s })
-    setEditing(s)
     setShowForm(true)
   }
   const handleSave = async () => {
@@ -58,7 +55,6 @@ export default function AdminSeries() {
     setError(null)
     try {
       await saveCourseSeries(form)
-      setEditing(null)
       setShowForm(false)
       await load()
     } catch (e) {
@@ -157,7 +153,7 @@ export default function AdminSeries() {
             </div>
             <div className="flex gap-2 mt-6">
               <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-[#1e3a5f] text-white rounded-lg text-sm">保存</button>
-              <button onClick={() => { setEditing(null); setShowForm(false) }} className="px-4 py-2 border rounded-lg text-sm">取消</button>
+              <button onClick={() => setShowForm(false)} className="px-4 py-2 border rounded-lg text-sm">取消</button>
             </div>
           </div>
         </div>

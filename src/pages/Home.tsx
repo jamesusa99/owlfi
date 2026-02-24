@@ -5,13 +5,13 @@ import Logo from '../components/Logo'
 
 const services = [
   { label: '组合管理', icon: '📁', path: '/portfolio' },
-  { label: '基金诊断', icon: '📊', path: '/tools/fund-compare' },
-  { label: '深度调研', icon: '🔍', path: '/news' },
-  { label: '挖宝专区', icon: '💎', path: '/portfolio/follow' },
+  { label: '基金诊断', icon: '📊', path: '/research/diagnosis' },
+  { label: '深度调研', icon: '🔍', path: '/research/reports' },
+  { label: '挖宝专区', icon: '💎', path: '/treasure' },
   { label: '猫头鹰连线', icon: '💬', path: '/forum' },
   { label: '我的账户', icon: '👤', path: '/profile' },
-  { label: '基金画像', icon: '📈', path: '/tools/fund-compare' },
-  { label: '路演日历', icon: '📅', path: '/news' },
+  { label: '基金画像', icon: '📈', path: '/research/fund-profile' },
+  { label: '路演日历', icon: '📅', path: '/roadshow' },
   { label: '精选课堂', icon: '📚', path: '/classroom' },
   { label: '更多', icon: '⋯', path: '/classroom' },
 ]
@@ -91,7 +91,7 @@ export default function Home() {
       {/* 基金好医生 + 热点 */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div
-          onClick={() => navigate('/tools/fund-compare')}
+          onClick={() => navigate('/research/diagnosis')}
           className="md:col-span-2 bg-gradient-to-br from-[var(--owl-primary)] to-[#2c5282] rounded-2xl p-5 text-white cursor-pointer hover:opacity-95 transition-opacity"
         >
           <div className="flex items-center gap-3">
@@ -103,7 +103,7 @@ export default function Home() {
           </div>
         </div>
         <div
-          onClick={() => navigate('/news')}
+          onClick={() => navigate('/news/hot')}
           className="bg-red-500/10 border border-red-500/30 rounded-2xl px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-red-500/15"
         >
           <div className="flex items-center gap-2">
@@ -148,6 +148,7 @@ export default function Home() {
           {['基金经理精选', '基金比较研究', 'ETF策略研究', '绝对收益策略', '基金组合配置'].map((tab) => (
             <button
               key={tab}
+              onClick={() => navigate(`/classroom/category/${encodeURIComponent(tab)}`)}
               className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
                 tab === '基金经理精选' ? 'bg-red-500 text-white' : 'bg-gray-100 text-[var(--owl-text-muted)]'
               }`}
@@ -170,7 +171,10 @@ export default function Home() {
       </section>
 
       {/* 市场指标 */}
-      <section className="bg-white rounded-2xl p-5 shadow-sm mb-6">
+      <section
+        onClick={() => navigate('/market/indicators')}
+        className="bg-white rounded-2xl p-5 shadow-sm mb-6 cursor-pointer hover:shadow-md transition-shadow"
+      >
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-[var(--owl-text)]">市场指标</h3>
           <span className="text-xs text-[var(--owl-text-muted)]">更新于2026-02-23</span>
@@ -253,17 +257,17 @@ export default function Home() {
         <p className="text-[var(--owl-text-muted)] text-sm mb-2">{'>>>>>> 猫头鹰基金研究院 <<<<<<'}</p>
         <p className="text-sm text-[var(--owl-text)] mb-6">基金投研之芯，提升持基体验</p>
         <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div onClick={() => navigate('/roadshow')} className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
             <p className="text-2xl font-bold text-[var(--owl-primary)]">1550+</p>
             <p className="text-sm text-[var(--owl-text-muted)] mt-1">累计路演</p>
             <p className="text-xs text-[var(--owl-accent)]">高频度</p>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div onClick={() => navigate('/profile/help/about')} className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
             <p className="text-2xl font-bold text-[var(--owl-primary)]">200+</p>
             <p className="text-sm text-[var(--owl-text-muted)] mt-1">机构客户</p>
             <p className="text-xs text-[var(--owl-accent)]">覆盖广</p>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div onClick={() => navigate('/research/fund-profile')} className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
             <p className="text-2xl font-bold text-[var(--owl-primary)]">1.5W+</p>
             <p className="text-sm text-[var(--owl-text-muted)] mt-1">特色标签</p>
             <p className="text-xs text-[var(--owl-accent)]">专业化</p>

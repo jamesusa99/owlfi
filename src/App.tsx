@@ -56,6 +56,18 @@ import Login from './pages/Login'
 import Forum from './pages/Forum'
 import ForumPost from './pages/ForumPost'
 import ForumCreate from './pages/ForumCreate'
+import FundDiagnosis from './pages/FundDiagnosis'
+import FundDiagnosisResult from './pages/FundDiagnosisResult'
+import ResearchReports from './pages/ResearchReports'
+import ResearchReportDetail from './pages/ResearchReportDetail'
+import TreasureZone from './pages/TreasureZone'
+import RoadshowCalendar from './pages/RoadshowCalendar'
+import RoadshowDetail from './pages/RoadshowDetail'
+import FundProfile from './pages/FundProfile'
+import MarketIndicators from './pages/MarketIndicators'
+import MarketIndicatorDetail from './pages/MarketIndicatorDetail'
+import ClassroomCategory from './pages/ClassroomCategory'
+import HotNews from './pages/HotNews'
 
 function App() {
   return (
@@ -65,6 +77,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="classroom" element={<Classroom />} />
+          <Route path="classroom/category/:cat" element={<ClassroomCategory />} />
           <Route path="classroom/topic/:tag" element={<TopicList />} />
           <Route path="classroom/course/:id" element={<CourseDetail />} />
           <Route path="classroom/course/:id/learn/:lessonId" element={<CourseLearn />} />
@@ -90,7 +103,18 @@ function App() {
           <Route path="tools/asset-config" element={<ToolAssetConfig />} />
           <Route path="tools/inflation" element={<ToolInflation />} />
           <Route path="news" element={<NewsList />} />
+          <Route path="news/hot" element={<HotNews />} />
           <Route path="news/:id" element={<NewsDetail />} />
+          <Route path="research/diagnosis" element={<FundDiagnosis />} />
+          <Route path="research/diagnosis/result/:code" element={<FundDiagnosisResult />} />
+          <Route path="research/reports" element={<ResearchReports />} />
+          <Route path="research/reports/:id" element={<ResearchReportDetail />} />
+          <Route path="treasure" element={<TreasureZone />} />
+          <Route path="roadshow" element={<RoadshowCalendar />} />
+          <Route path="roadshow/:id" element={<RoadshowDetail />} />
+          <Route path="research/fund-profile" element={<FundProfile />} />
+          <Route path="market/indicators" element={<MarketIndicators />} />
+          <Route path="market/indicators/:name" element={<MarketIndicatorDetail />} />
           <Route path="forum" element={<Forum />} />
           <Route path="forum/post/:id" element={<ForumPost />} />
           <Route path="forum/create" element={<ProtectedRoute><ForumCreate /></ProtectedRoute>} />

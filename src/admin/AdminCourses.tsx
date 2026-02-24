@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react'
 import type { AdminCourse, AdminLesson } from '../lib/adminDb'
 import { fetchCourses, saveCourse, deleteCourse, nextLessonId } from '../lib/adminDb'
 import { getErrorMessage } from './utils'
+import { FormLabel } from './AdminFormLabel'
 import AdminConfirmModal from './AdminConfirmModal'
 
 function CourseForm({
   course,
   onSave,
   onCancel,
+  onValidationError,
 }: {
   course: AdminCourse | null
   onSave: (c: AdminCourse) => void
   onCancel: () => void
+  onValidationError: (msg: string) => void
 }) {
   const isEdit = !!course
   const [form, setForm] = useState<AdminCourse>(
@@ -26,6 +29,15 @@ function CourseForm({
       lessons: [{ id: 1, title: '', content: '' }],
     }
   )
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!(form.title || '').trim()) {
+      onValidationError('请填写课程名称（必填）')
+      return
+    }
+    onSave(form)
+  }
 
   const addLesson = () => {
     setForm({
@@ -51,25 +63,20 @@ function CourseForm({
         <div className="p-6 border-b border-gray-100">
           <h3 className="font-bold text-[#1a2b3c]">{isEdit ? '编辑课程' : '添加课程'}</h3>
         </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            onSave(form)
-          }}
-          className="p-6 space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#6b7c8d] mb-1">ID</label>
+              <FormLabel label="ID" required={false} hint="添加时留空由系统生成" />
               <input
                 type="number"
                 value={form.id || ''}
                 onChange={(e) => setForm({ ...form, id: parseInt(e.target.value) || 0 })}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                placeholder="新增可不填"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#6b7c8d] mb-1">类型</label>
+              <FormLabel label="类型" required={false} hint="视频 或 图文" />
               <select
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value as AdminCourse['type'] })}
@@ -81,18 +88,18 @@ function CourseForm({
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">课程名称</label>
+            <FormLabel label="课程名称" required hint="不能为空" />
             <input
               type="text"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg"
-              required
+              placeholder="请输入课程名称"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#6b7c8d] mb-1">时长</label>
+              <FormLabel label="时长" required={false} hint="如 15分钟" />
               <input
                 type="text"
                 value={form.duration}
@@ -102,7 +109,7 @@ function CourseForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#6b7c8d] mb-1">标签</label>
+              <FormLabel label="标签" required={false} hint="入门 / 进阶 / 高级" />
               <select
                 value={form.tag}
                 onChange={(e) => setForm({ ...form, tag: e.target.value })}
@@ -115,7 +122,7 @@ function CourseForm({
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">缩略图(emoji)</label>
+            <FormLabel label="缩略图(emoji)" required={false} hint="选填，一个 emoji 如 📖" />
             <input
               type="text"
               value={form.thumbnail}
@@ -125,7 +132,7 @@ function CourseForm({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">B站BV号</label>
+            <FormLabel label="B站BV号" required={false} hint="选填，如 BV16s4y1p7vh" />
             <input
               type="text"
               value={form.videoBvid || ''}
@@ -135,20 +142,22 @@ function CourseForm({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">简介</label>
+            <FormLabel label="简介" required={false} hint="选填" />
             <textarea
               value={form.desc}
               onChange={(e) => setForm({ ...form, desc: e.target.value })}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg min-h-[80px]"
+              placeholder="选填"
             />
           </div>
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-[#6b7c8d]">课时</label>
+              <span className="text-sm font-medium text-[#6b7c8d]">课时 <span className="text-[#9ca3af] text-xs">选填</span></span>
               <button type="button" onClick={addLesson} className="text-[#1e3a5f] text-sm">
                 + 添加课时
               </button>
             </div>
+            <p className="text-xs text-[#9ca3af] mb-1">至少保留一节，可添加多节；每节可填标题、内容、B站 BV 号</p>
             {form.lessons.map((l, idx) => (
               <div key={l.id} className="border border-gray-200 rounded-lg p-3 mb-2">
                 <div className="flex justify-between mb-2">
@@ -287,8 +296,8 @@ export default function AdminCourses() {
           <div className="bg-white rounded-xl px-6 py-4">保存中...</div>
         </div>
       )}
-      {formCourse && formCourse !== 'add' && <CourseForm course={formCourse} onSave={handleSave} onCancel={() => setFormCourse(null)} />}
-      {formCourse === 'add' && <CourseForm course={null} onSave={handleSave} onCancel={() => setFormCourse(null)} />}
+      {formCourse && formCourse !== 'add' && <CourseForm course={formCourse} onSave={handleSave} onCancel={() => setFormCourse(null)} onValidationError={setError} />}
+      {formCourse === 'add' && <CourseForm course={null} onSave={handleSave} onCancel={() => setFormCourse(null)} onValidationError={setError} />}
       {deleteId !== null && (
         <AdminConfirmModal
           title="确定要删除该课程吗？此操作不可恢复。"

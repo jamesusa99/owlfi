@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { AdminUser } from '../lib/adminDb'
 import { fetchUsers, saveUser, deleteUser, generateUserId } from '../lib/adminDb'
 import { getErrorMessage } from './utils'
+import { FormLabel } from './AdminFormLabel'
 
 interface UserFormProps {
   user: AdminUser | null
@@ -9,9 +10,10 @@ interface UserFormProps {
   onSave: (u: AdminUser) => void
   onCancel: () => void
   onSelectExistingUser?: (u: AdminUser) => void
+  onValidationError?: (msg: string) => void
 }
 
-function UserForm({ user, users, onSave, onCancel, onSelectExistingUser }: UserFormProps) {
+function UserForm({ user, users, onSave, onCancel, onSelectExistingUser, onValidationError }: UserFormProps) {
   const isEdit = !!user
   const [form, setForm] = useState<AdminUser>(
     user ?? {
@@ -26,6 +28,14 @@ function UserForm({ user, users, onSave, onCancel, onSelectExistingUser }: UserF
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!(form.id || '').trim()) {
+      onValidationError?.('请填写或选择用户ID（必填）')
+      return
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(form.regTime || '')) {
+      onValidationError?.('请选择正确的注册时间，格式：年-月-日')
+      return
+    }
     onSave(form)
   }
 
@@ -37,7 +47,7 @@ function UserForm({ user, users, onSave, onCancel, onSelectExistingUser }: UserF
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">用户ID</label>
+            <FormLabel label="用户ID" required hint="格式如 U1A2B3C4，不可与已有用户重复" />
             {isEdit ? (
               <input
                 type="text"
@@ -81,7 +91,7 @@ function UserForm({ user, users, onSave, onCancel, onSelectExistingUser }: UserF
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">手机号</label>
+            <FormLabel label="手机号" required={false} hint="选填，如 138****1234" />
             <input
               type="text"
               value={form.phone}
@@ -91,7 +101,7 @@ function UserForm({ user, users, onSave, onCancel, onSelectExistingUser }: UserF
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">昵称</label>
+            <FormLabel label="昵称" required={false} hint="选填，前端显示用" />
             <input
               type="text"
               value={form.nickname}
@@ -101,7 +111,7 @@ function UserForm({ user, users, onSave, onCancel, onSelectExistingUser }: UserF
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">注册时间</label>
+            <FormLabel label="注册时间" required hint="格式：年-月-日（YYYY-MM-DD）" />
             <input
               type="date"
               value={form.regTime}
@@ -110,7 +120,7 @@ function UserForm({ user, users, onSave, onCancel, onSelectExistingUser }: UserF
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">订单数</label>
+            <FormLabel label="订单数" required={false} hint="数字，选填" />
             <input
               type="number"
               min={0}
@@ -120,7 +130,7 @@ function UserForm({ user, users, onSave, onCancel, onSelectExistingUser }: UserF
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">状态</label>
+            <FormLabel label="状态" required={false} hint="正常 或 禁用" />
             <select
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as AdminUser['status'] })}
@@ -268,10 +278,10 @@ export default function AdminUsers() {
       )}
 
       {formUser && formUser !== 'add' && (
-        <UserForm user={formUser} users={users} onSave={handleSave} onCancel={() => setFormUser(null)} />
+        <UserForm user={formUser} users={users} onSave={handleSave} onCancel={() => setFormUser(null)} onValidationError={setError} />
       )}
       {formUser === 'add' && (
-        <UserForm user={null} users={users} onSave={handleSave} onCancel={() => setFormUser(null)} onSelectExistingUser={(u) => setFormUser(u)} />
+        <UserForm user={null} users={users} onSave={handleSave} onCancel={() => setFormUser(null)} onSelectExistingUser={(u) => setFormUser(u)} onValidationError={setError} />
       )}
       {saving && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">

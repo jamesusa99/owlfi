@@ -252,14 +252,24 @@ export async function fetchOrders(): Promise<AdminOrder[]> {
   return (data ?? []).map(orderFromRow)
 }
 
+function toOrderTime(s: string | undefined): string {
+  if (!s || typeof s !== 'string') return new Date().toISOString().slice(0, 19).replace('T', ' ')
+  const normalized = s.trim().replace(' ', 'T')
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(normalized)) {
+    return normalized.slice(0, 19).replace('T', ' ')
+  }
+  return new Date().toISOString().slice(0, 19).replace('T', ' ')
+}
+
 export async function saveOrder(order: AdminOrder): Promise<void> {
+  const orderTime = toOrderTime(order.time)
   const row = {
-    id: order.id,
-    user_display: order.user,
-    type: order.type,
-    amount: order.amount,
-    status: order.status,
-    order_time: order.time.replace(' ', 'T') + (order.time.length <= 16 ? ':00' : ''),
+    id: (order.id || '').trim() || generateOrderId(),
+    user_display: order.user ?? '',
+    type: order.type ?? '申购',
+    amount: Number(order.amount) || 0,
+    status: order.status ?? '处理中',
+    order_time: orderTime.replace(' ', 'T') + (orderTime.length <= 16 ? ':00' : ''),
   }
   const { error } = await supabase.from('orders').upsert(row, { onConflict: 'id' })
   if (error) throw error

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { AdminOrder, AdminUser } from '../lib/adminDb'
 import { fetchOrders, saveOrder, deleteOrder, generateOrderId, fetchUsers } from '../lib/adminDb'
 import { getErrorMessage } from './utils'
+import { FormLabel } from './AdminFormLabel'
 import AdminConfirmModal from './AdminConfirmModal'
 
 function OrderForm({
@@ -9,11 +10,13 @@ function OrderForm({
   users,
   onSave,
   onCancel,
+  onValidationError,
 }: {
   order: AdminOrder | null
   users: AdminUser[]
   onSave: (o: AdminOrder) => void
   onCancel: () => void
+  onValidationError: (msg: string) => void
 }) {
   const isEdit = !!order
   const [form, setForm] = useState<AdminOrder>(
@@ -27,30 +30,38 @@ function OrderForm({
     }
   )
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!(form.user || '').trim()) {
+      onValidationError('请选择或填写用户（必填）')
+      return
+    }
+    if (Number(form.amount) < 0) {
+      onValidationError('金额不能为负数')
+      return
+    }
+    onSave(form)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-100">
           <h3 className="font-bold text-[#1a2b3c]">{isEdit ? '编辑订单' : '添加订单'}</h3>
         </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            onSave(form)
-          }}
-          className="p-6 space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">订单号</label>
+            <FormLabel label="订单号" required hint="格式如 O202602240001，留空则自动生成" />
             <input
               type="text"
               value={form.id}
               onChange={(e) => setForm({ ...form, id: e.target.value })}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg font-mono"
+              placeholder="留空自动生成"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">用户</label>
+            <FormLabel label="用户" required hint="从下拉选择已有用户，或选「其他」后手动输入显示名" />
             <select
               value={
                 users.some((u) => u.nickname === form.user)
@@ -84,24 +95,25 @@ function OrderForm({
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">类型</label>
+            <FormLabel label="类型" required={false} hint="申购 或 赎回" />
             <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as AdminOrder['type'] })} className="w-full px-4 py-2 border border-gray-200 rounded-lg">
               <option value="申购">申购</option>
               <option value="赎回">赎回</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">金额(元)</label>
+            <FormLabel label="金额(元)" required={false} hint="数字，不能为负" />
             <input
               type="number"
               min={0}
               value={form.amount || ''}
               onChange={(e) => setForm({ ...form, amount: parseInt(e.target.value) || 0 })}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+              placeholder="0"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">状态</label>
+            <FormLabel label="状态" required={false} hint="已完成 / 处理中 / 已取消" />
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as AdminOrder['status'] })} className="w-full px-4 py-2 border border-gray-200 rounded-lg">
               <option value="已完成">已完成</option>
               <option value="处理中">处理中</option>
@@ -109,7 +121,7 @@ function OrderForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">时间</label>
+            <FormLabel label="时间" required hint="格式：年-月-日 时:分，不填则用当前时间" />
             <input
               type="datetime-local"
               value={(form.time || '').replace(' ', 'T').slice(0, 16)}
@@ -239,8 +251,8 @@ export default function AdminOrders() {
           <div className="bg-white rounded-xl px-6 py-4">保存中...</div>
         </div>
       )}
-      {formItem && formItem !== 'add' && <OrderForm order={formItem} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} />}
-      {formItem === 'add' && <OrderForm order={null} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} />}
+      {formItem && formItem !== 'add' && <OrderForm order={formItem} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} onValidationError={setError} />}
+      {formItem === 'add' && <OrderForm order={null} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} onValidationError={setError} />}
       {deleteId && (
         <AdminConfirmModal
           title="确定要删除该订单吗？此操作不可恢复。"

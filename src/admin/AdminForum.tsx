@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { AdminForumPost, AdminUser } from '../lib/adminDb'
 import { fetchForumPosts, saveForumPost, deleteForumPost, fetchUsers } from '../lib/adminDb'
 import { getErrorMessage } from './utils'
+import { FormLabel } from './AdminFormLabel'
 import AdminConfirmModal from './AdminConfirmModal'
 
 function ForumForm({
@@ -9,11 +10,13 @@ function ForumForm({
   users,
   onSave,
   onCancel,
+  onValidationError,
 }: {
   post: AdminForumPost | null
   users: AdminUser[]
   onSave: (p: AdminForumPost) => void
   onCancel: () => void
+  onValidationError: (msg: string) => void
 }) {
   const isEdit = !!post
   const [form, setForm] = useState<AdminForumPost>(
@@ -28,40 +31,48 @@ function ForumForm({
     }
   )
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!(form.title || '').trim()) {
+      onValidationError('请填写标题（必填）')
+      return
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(form.publishTime || '')) {
+      onValidationError('请选择正确的发布时间，格式：年-月-日')
+      return
+    }
+    onSave(form)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-100">
           <h3 className="font-bold text-[#1a2b3c]">{isEdit ? '编辑帖子' : '添加帖子'}</h3>
         </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            onSave(form)
-          }}
-          className="p-6 space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">ID</label>
+            <FormLabel label="ID" required={false} hint="添加时留空由系统生成；编辑时不可改" />
             <input
               type="number"
               value={form.id || ''}
               onChange={(e) => setForm({ ...form, id: parseInt(e.target.value) || 0 })}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+              placeholder="新增可不填"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">标题</label>
+            <FormLabel label="标题" required hint="任意文字，不能为空" />
             <input
               type="text"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg"
-              required
+              placeholder="请输入帖子标题"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">作者</label>
+            <FormLabel label="作者" required={false} hint="从下拉选择用户，或选「其他」后手动输入" />
             <select
               value={users.some((u) => u.nickname === form.author) ? form.author : form.author ? '_other_' : ''}
               onChange={(e) => setForm({ ...form, author: e.target.value === '_other_' ? '' : e.target.value })}
@@ -86,15 +97,16 @@ function ForumForm({
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">内容</label>
+            <FormLabel label="内容" required={false} hint="选填，支持多行" />
             <textarea
               value={form.content}
               onChange={(e) => setForm({ ...form, content: e.target.value })}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg min-h-[100px]"
+              placeholder="选填"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">回复数</label>
+            <FormLabel label="回复数" required={false} hint="数字，选填" />
             <input
               type="number"
               min={0}
@@ -104,7 +116,7 @@ function ForumForm({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">状态</label>
+            <FormLabel label="状态" required={false} hint="正常 / 置顶 / 已删除" />
             <select
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as AdminForumPost['status'] })}
@@ -116,7 +128,7 @@ function ForumForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#6b7c8d] mb-1">发布时间</label>
+            <FormLabel label="发布时间" required hint="格式：年-月-日（YYYY-MM-DD）" />
             <input
               type="date"
               value={form.publishTime}
@@ -246,8 +258,8 @@ export default function AdminForum() {
           <div className="bg-white rounded-xl px-6 py-4">保存中...</div>
         </div>
       )}
-      {formItem && formItem !== 'add' && <ForumForm post={formItem} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} />}
-      {formItem === 'add' && <ForumForm post={null} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} />}
+      {formItem && formItem !== 'add' && <ForumForm post={formItem} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} onValidationError={setError} />}
+      {formItem === 'add' && <ForumForm post={null} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} onValidationError={setError} />}
       {deleteId !== null && (
         <AdminConfirmModal
           title="确定要删除该帖子吗？此操作不可恢复。"

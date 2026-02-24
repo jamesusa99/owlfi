@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Logo from '../components/Logo'
+import { fetchNewsForApp, fetchCoursesForApp } from '../lib/publicApi'
 
 const services = [
   { label: '组合管理', icon: '📁', path: '/portfolio' },
@@ -18,21 +19,26 @@ const services = [
 
 const hotTabs = ['推荐', '深度研究', '市场洞察']
 
-const hotArticles = [
-  { id: 1, title: '猫头鹰八点半 & 猫头鹰九点客座谈第十五期', views: 1920, date: '2026年2月23日' },
-  { id: 2, title: '行为金融与低频量化在中国资本市场的实践', views: 20, date: '2026年2月23日' },
-  { id: 3, title: '猫头鹰ETF策略-20260209-节前,满仓均衡', views: 231, date: '2026年2月9日' },
-]
-
-const courses = [
-  { id: 1, title: '第一节 权益型基金经理的频谱分析 (一)', path: '/classroom/course/1' },
-  { id: 2, title: '第二节 债券型基金配置策略', path: '/classroom/course/2' },
-]
-
 export default function Home() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [activeTab, setActiveTab] = useState('推荐')
+  const [hotArticles, setHotArticles] = useState<{ id: number; title: string; publishTime: string }[]>([])
+  const [courses, setCourses] = useState<{ id: number; title: string; path: string }[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([fetchNewsForApp(), fetchCoursesForApp()])
+      .then(([news, courseList]) => {
+        if (cancelled) return
+        setHotArticles(news.slice(0, 5).map((n) => ({ id: n.id, title: n.title, publishTime: n.publishTime })))
+        setCourses(
+          courseList.slice(0, 5).map((c) => ({ id: c.id, title: c.title, path: `/classroom/course/${c.id}` }))
+        )
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
 
   return (
     <div className="max-w-7xl mx-auto px-4 pb-8">
@@ -236,19 +242,22 @@ export default function Home() {
           ))}
         </div>
         <div className="space-y-3">
-          {hotArticles.map((a) => (
-            <div
-              key={a.id}
-              onClick={() => navigate(`/news/${a.id}`)}
-              className="py-3 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 rounded-lg px-2 -mx-2"
-            >
-              <p className="text-sm text-[var(--owl-text)] line-clamp-2">{a.title}</p>
-              <div className="flex gap-4 mt-1 text-xs text-[var(--owl-text-muted)]">
-                <span>👁 {a.views}</span>
-                <span>{a.date}</span>
+          {hotArticles.length === 0 ? (
+            <p className="text-sm text-[var(--owl-text-muted)]">暂无资讯</p>
+          ) : (
+            hotArticles.map((a) => (
+              <div
+                key={a.id}
+                onClick={() => navigate(`/news/${a.id}`)}
+                className="py-3 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 rounded-lg px-2 -mx-2"
+              >
+                <p className="text-sm text-[var(--owl-text)] line-clamp-2">{a.title}</p>
+                <div className="flex gap-4 mt-1 text-xs text-[var(--owl-text-muted)]">
+                  <span>{a.publishTime}</span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
 

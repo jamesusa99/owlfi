@@ -1,17 +1,42 @@
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getCourse, getLesson } from '../data/courses'
+import { getCourseForApp, type Course, type Lesson } from '../lib/publicApi'
 import VideoPlayer from '../components/VideoPlayer'
 
 export default function CourseLearn() {
   const { id, lessonId } = useParams<{ id: string; lessonId: string }>()
   const navigate = useNavigate()
   const courseId = id ? Number(id) : 0
-  const course = getCourse(courseId)
-  const lessonNum = lessonId ? Number(lessonId) : 1
-  const lesson = course ? getLesson(courseId, lessonNum) : null
-  const lessons = course?.lessons || []
+  const [course, setCourse] = useState<Course | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!courseId) {
+      setLoading(false)
+      return
+    }
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    getCourseForApp(courseId)
+      .then((data) => {
+        if (!cancelled) setCourse(data ?? null)
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e?.message ?? '加载失败')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [courseId])
+
+  const lessonNum = lessonId ? Number(lessonId) : 0
+  const lessons = course?.lessons ?? []
   const currentIndex = lessons.findIndex((l) => l.id === lessonNum)
   const safeIndex = currentIndex >= 0 ? currentIndex : 0
+  const currentLesson: Lesson | undefined = lessons[safeIndex]
 
   const goPrev = () => {
     if (safeIndex > 0) {
@@ -29,8 +54,20 @@ export default function CourseLearn() {
     }
   }
 
-  const currentLesson = lesson || lessons[0]
-
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 text-center text-[var(--owl-text-muted)]">
+        加载中...
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 text-center text-red-600">
+        {error}
+      </div>
+    )
+  }
   if (!course) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 text-center text-[var(--owl-text-muted)]">
@@ -45,7 +82,6 @@ export default function CourseLearn() {
         <span>第 {safeIndex + 1} / {lessons.length} 节</span>
       </div>
 
-      {/* 视频播放器 - 有 videoBvid 时显示 B 站嵌入 */}
       {currentLesson?.videoBvid ? (
         <VideoPlayer bvid={currentLesson.videoBvid} className="mb-6" />
       ) : (

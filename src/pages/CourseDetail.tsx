@@ -1,13 +1,51 @@
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getCourse } from '../data/courses'
+import { getCourseForApp, type Course } from '../lib/publicApi'
 import VideoPlayer from '../components/VideoPlayer'
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const courseId = id ? Number(id) : 0
-  const course = getCourse(courseId)
+  const [course, setCourse] = useState<Course | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (!courseId) {
+      setLoading(false)
+      return
+    }
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    getCourseForApp(courseId)
+      .then((data) => {
+        if (!cancelled) setCourse(data ?? null)
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e?.message ?? '加载失败')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [courseId])
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 text-center text-[var(--owl-text-muted)]">
+        加载中...
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 text-center text-red-600">
+        {error}
+      </div>
+    )
+  }
   if (!course) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 text-center text-[var(--owl-text-muted)]">
@@ -19,7 +57,6 @@ export default function CourseDetail() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
-        {/* 课程封面/视频 */}
         {course.videoBvid ? (
           <VideoPlayer bvid={course.videoBvid} />
         ) : (
@@ -62,7 +99,10 @@ export default function CourseDetail() {
       </div>
 
       <button
-        onClick={() => id && navigate(`/classroom/course/${id}/learn/1`)}
+        onClick={() => {
+          const firstId = course.lessons[0]?.id
+          if (firstId) navigate(`/classroom/course/${id}/learn/${firstId}`)
+        }}
         className="w-full mt-6 py-4 bg-[var(--owl-primary)] text-white font-medium rounded-xl"
       >
         开始学习

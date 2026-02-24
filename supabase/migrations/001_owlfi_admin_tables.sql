@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS courses (
   duration TEXT NOT NULL DEFAULT '',
   tag TEXT NOT NULL DEFAULT '入门' CHECK (tag IN ('入门', '进阶', '高级')),
   thumbnail TEXT NOT NULL DEFAULT '📖',
-  desc TEXT NOT NULL DEFAULT '',
+  "desc" TEXT NOT NULL DEFAULT '',
   video_bvid TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

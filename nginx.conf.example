@@ -1,0 +1,19 @@
+# Nginx 配置示例 - 解决 SPA 刷新 404 问题
+# 将此配置合并到你的 nginx 的 server 块中
+
+server {
+    listen 80;
+    server_name www.owlfi.cn owlfi.cn;
+    root /path/to/your/dist;   # 修改为实际的 dist 目录路径
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 静态资源缓存
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}

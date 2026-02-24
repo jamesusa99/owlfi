@@ -37,3 +37,12 @@ npm run build
 ```
 
 构建产物在 `dist/` 目录。
+
+## 部署与刷新 404 问题
+
+部署到静态托管后，直接访问或刷新 `/login`、`/forum` 等路径可能出现 404。需要配置服务器将所有请求回退到 `index.html`：
+
+- **Vercel**：已包含 `vercel.json`
+- **Netlify**：已包含 `netlify.toml` 和 `public/_redirects`
+- **Nginx**：参考 `nginx.conf.example`，添加 `try_files $uri $uri/ /index.html;`
+- **Apache**：已包含 `public/.htaccess`

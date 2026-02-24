@@ -10,6 +10,15 @@ const settingsMenus = [
   { label: '隐私设置', path: '/profile/settings/privacy', needLogin: false },
 ]
 
+const moreMenus = [
+  { label: '任务中心', path: '/profile/tasks' },
+  { label: '积分商城', path: '/profile/points-mall' },
+  { label: '活动中心', path: '/profile/activities' },
+  { label: '行情商城', path: '/profile/market-mall' },
+  { label: '我的奖励', path: '/profile/rewards' },
+  { label: '我的卡券', path: '/profile/coupons' },
+]
+
 export default function ProfileSettings() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
@@ -36,11 +45,24 @@ export default function ProfileSettings() {
           </button>
         </div>
       )}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
         {settingsMenus.map((m) => (
           <div
             key={m.path}
             onClick={() => handleMenuClick(m)}
+            className="flex justify-between items-center px-5 py-4 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50"
+          >
+            <span className="text-[var(--owl-text)]">{m.label}</span>
+            <span className="text-[var(--owl-text-muted)]">›</span>
+          </div>
+        ))}
+      </div>
+      <h3 className="font-medium text-[var(--owl-text)] mb-3 text-sm text-[var(--owl-text-muted)]">更多服务</h3>
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        {moreMenus.map((m) => (
+          <div
+            key={m.path}
+            onClick={() => navigate(m.path)}
             className="flex justify-between items-center px-5 py-4 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50"
           >
             <span className="text-[var(--owl-text)]">{m.label}</span>

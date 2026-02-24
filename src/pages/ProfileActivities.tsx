@@ -4,12 +4,12 @@ export default function ProfileActivities() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-[#1a1d21] text-white px-4 py-6">
-      <h2 className="text-lg font-bold mb-4">活动中心</h2>
-      <p className="text-gray-400 text-sm mb-6">精彩活动，不容错过</p>
-      <div className="bg-[#252830] rounded-2xl p-6 text-center">
-        <p className="text-gray-400 mb-4">暂无进行中的活动</p>
-        <button onClick={() => navigate('/profile')} className="text-[#d4a84b] text-sm">
+    <div className="max-w-3xl mx-auto px-4 py-6">
+      <h2 className="font-bold text-[var(--owl-text)] mb-2">活动中心</h2>
+      <p className="text-[var(--owl-text-muted)] text-sm mb-6">精彩活动，不容错过</p>
+      <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
+        <p className="text-[var(--owl-text-muted)] mb-4">暂无进行中的活动</p>
+        <button onClick={() => navigate('/profile')} className="text-[var(--owl-primary)] text-sm">
           返回我的
         </button>
       </div>

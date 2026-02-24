@@ -4,15 +4,16 @@ export default function ProfileAssociatedAccount() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-[#1a1d21] text-white px-4 py-6">
-      <h2 className="text-lg font-bold mb-4">关联账户</h2>
-      <p className="text-gray-400 text-sm mb-6">管理您的关联交易账户</p>
-      <div className="bg-[#252830] rounded-2xl p-6 text-center">
-        <p className="text-gray-400 mb-4">暂无已关联账户</p>
-        <button onClick={() => navigate('/profile')} className="text-[#d4a84b] text-sm">
-          返回我的
-        </button>
+    <div className="max-w-3xl mx-auto px-4 py-6">
+      <h2 className="font-bold text-[var(--owl-text)] mb-2">关联账户</h2>
+      <p className="text-[var(--owl-text-muted)] text-sm mb-6">管理您的关联交易账户</p>
+      <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center mb-6">
+        <p className="text-[var(--owl-text-muted)] mb-4">暂无已关联账户</p>
+        <p className="text-sm text-[var(--owl-text-muted)]">关联后可在多平台同步您的组合与持仓</p>
       </div>
+      <button onClick={() => navigate('/profile')} className="w-full py-2 text-[var(--owl-text-muted)] text-sm">
+        返回我的
+      </button>
     </div>
   )
 }

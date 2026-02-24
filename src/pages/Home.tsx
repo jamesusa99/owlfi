@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Logo from '../components/Logo'
-import { fetchNewsForApp, fetchCoursesForApp, getAnnouncementForApp } from '../lib/publicApi'
+import { fetchNewsForApp, fetchCoursesForApp, getAnnouncementForApp, getMarketIndicatorsForApp } from '../lib/publicApi'
 
 const services = [
   { label: '组合管理', icon: '📁', path: '/portfolio' },
@@ -27,17 +27,25 @@ export default function Home() {
   const [hotArticles, setHotArticles] = useState<{ id: number; title: string; publishTime: string }[]>([])
   const [courses, setCourses] = useState<{ id: number; title: string; path: string }[]>([])
   const [announcement, setAnnouncement] = useState('')
+  const [marketIndicators, setMarketIndicators] = useState<{
+    bondEquitySpread: string
+    spreadStatus: string
+    marketTemperature: string
+    tempStatus: string
+    updatedAt: string
+  } | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([fetchNewsForApp(), fetchCoursesForApp(), getAnnouncementForApp()])
-      .then(([news, courseList, announcementContent]) => {
+    Promise.all([fetchNewsForApp(), fetchCoursesForApp(), getAnnouncementForApp(), getMarketIndicatorsForApp()])
+      .then(([news, courseList, announcementContent, indicators]) => {
         if (cancelled) return
         setHotArticles(news.slice(0, 5).map((n) => ({ id: n.id, title: n.title, publishTime: n.publishTime })))
         setCourses(
           courseList.slice(0, 5).map((c) => ({ id: c.id, title: c.title, path: `/classroom/course/${c.id}` }))
         )
         setAnnouncement((announcementContent || '').trim())
+        setMarketIndicators(indicators)
       })
       .catch(() => {})
     return () => { cancelled = true }
@@ -192,25 +200,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 市场指标 */}
+      {/* 市场指标（来自后台系统设置） */}
       <section
         onClick={() => navigate('/market/indicators')}
         className="bg-white rounded-2xl p-5 shadow-sm mb-6 cursor-pointer hover:shadow-md transition-shadow"
       >
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-[var(--owl-text)]">市场指标</h3>
-          <span className="text-xs text-[var(--owl-text-muted)]">更新于2026-02-23</span>
+          <span className="text-xs text-[var(--owl-text-muted)]">
+            {marketIndicators?.updatedAt ? `更新于 ${marketIndicators.updatedAt}` : '点击查看详情'}
+          </span>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 bg-[var(--owl-bg)] rounded-xl">
             <p className="text-sm text-[var(--owl-text-muted)] mb-2">股债利差</p>
-            <p className="text-2xl font-bold text-[var(--owl-text)]">4.40%</p>
-            <p className="text-sm text-green-600 mt-1">较好</p>
+            <p className="text-2xl font-bold text-[var(--owl-text)]">{marketIndicators?.bondEquitySpread ?? '4.40%'}</p>
+            <p className="text-sm text-green-600 mt-1">{marketIndicators?.spreadStatus ?? '较好'}</p>
           </div>
           <div className="p-4 bg-[var(--owl-bg)] rounded-xl">
             <p className="text-sm text-[var(--owl-text-muted)] mb-2">市场温度 · 中证全指</p>
-            <p className="text-2xl font-bold text-[var(--owl-text)]">66.12°C</p>
-            <p className="text-sm text-orange-500 mt-1">偏热</p>
+            <p className="text-2xl font-bold text-[var(--owl-text)]">{marketIndicators?.marketTemperature ?? '66.12°C'}</p>
+            <p className="text-sm text-orange-500 mt-1">{marketIndicators?.tempStatus ?? '偏热'}</p>
           </div>
         </div>
       </section>

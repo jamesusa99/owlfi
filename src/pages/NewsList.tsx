@@ -51,7 +51,10 @@ export default function NewsList() {
       {loading ? (
         <p className="text-[var(--owl-text-muted)]">加载中...</p>
       ) : list.length === 0 ? (
-        <p className="text-[var(--owl-text-muted)]">暂无资讯</p>
+        <div className="text-[var(--owl-text-muted)] space-y-2">
+          <p>暂无已发布的资讯</p>
+          <p className="text-xs">若已在后台添加资讯，请将状态设为「已发布」后刷新本页</p>
+        </div>
       ) : (
         <div className="space-y-3">
           {list.map((news) => (

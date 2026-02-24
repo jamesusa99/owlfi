@@ -7,6 +7,7 @@ import {
   fetchNews,
   fetchForumPosts,
   fetchAnnouncement,
+  fetchMarketIndicators,
   type AdminCourse,
   type AdminLesson,
 } from './adminDb'
@@ -84,4 +85,17 @@ export async function getForumPostForApp(id: number): Promise<ForumPostItem | nu
 /** 系统公告（首页展示，后台在「系统设置」编辑） */
 export async function getAnnouncementForApp(): Promise<string> {
   return fetchAnnouncement()
+}
+
+/** 市场指标（首页展示，后台在「系统设置」编辑） */
+export interface MarketIndicatorsForApp {
+  bondEquitySpread: string
+  spreadStatus: string
+  marketTemperature: string
+  tempStatus: string
+  updatedAt: string
+}
+
+export async function getMarketIndicatorsForApp(): Promise<MarketIndicatorsForApp> {
+  return fetchMarketIndicators()
 }

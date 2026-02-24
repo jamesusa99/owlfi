@@ -1,21 +1,35 @@
 import { useState, useEffect } from 'react'
-import { fetchAnnouncement, saveAnnouncement } from '../lib/adminDb'
+import { fetchAnnouncement, saveAnnouncement, fetchMarketIndicators, saveMarketIndicators, type MarketIndicatorsRow } from '../lib/adminDb'
 import { getErrorMessage } from './utils'
+
+const defaultIndicators: MarketIndicatorsRow = {
+  bondEquitySpread: '4.40%',
+  spreadStatus: '较好',
+  marketTemperature: '66.12°C',
+  tempStatus: '偏热',
+  updatedAt: '',
+}
 
 export default function AdminSettings() {
   const [announcement, setAnnouncement] = useState('')
+  const [indicators, setIndicators] = useState<MarketIndicatorsRow>(defaultIndicators)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingIndicators, setSavingIndicators] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [successIndicators, setSuccessIndicators] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setError(null)
-    fetchAnnouncement()
-      .then((content) => {
-        if (!cancelled) setAnnouncement(content)
+    Promise.all([fetchAnnouncement(), fetchMarketIndicators()])
+      .then(([content, ind]) => {
+        if (!cancelled) {
+          setAnnouncement(content)
+          setIndicators(ind)
+        }
       })
       .catch((e) => {
         if (!cancelled) setError(getErrorMessage(e, '加载失败'))
@@ -38,6 +52,21 @@ export default function AdminSettings() {
       setError(getErrorMessage(e, '保存失败'))
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSaveIndicators = async () => {
+    setSavingIndicators(true)
+    setError(null)
+    setSuccessIndicators(false)
+    try {
+      await saveMarketIndicators(indicators)
+      setSuccessIndicators(true)
+      setTimeout(() => setSuccessIndicators(false), 2000)
+    } catch (e) {
+      setError(getErrorMessage(e, '保存失败'))
+    } finally {
+      setSavingIndicators(false)
     }
   }
 
@@ -73,20 +102,54 @@ export default function AdminSettings() {
           )}
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="font-medium text-[#1a2b3c] mb-4">市场指标</h3>
+          <h3 className="font-medium text-[#1a2b3c] mb-2">市场指标</h3>
+          <p className="text-xs text-[#6b7c8d] mb-4">以下内容将显示在首页「市场指标」区域，点击可进入详情页。</p>
           <div className="space-y-3">
-            <div className="flex items-center justify-between py-2">
-              <span className="text-[#6b7c8d]">股债利差</span>
-              <input type="text" defaultValue="4.40%" className="w-24 px-2 py-1 border rounded text-right" />
+            <div className="flex items-center justify-between gap-4 py-2">
+              <span className="text-[#6b7c8d] shrink-0">股债利差</span>
+              <input
+                type="text"
+                value={indicators.bondEquitySpread}
+                onChange={(e) => setIndicators((i) => ({ ...i, bondEquitySpread: e.target.value }))}
+                className="w-24 px-2 py-1 border rounded text-right"
+                placeholder="4.40%"
+              />
+              <input
+                type="text"
+                value={indicators.spreadStatus}
+                onChange={(e) => setIndicators((i) => ({ ...i, spreadStatus: e.target.value }))}
+                className="w-20 px-2 py-1 border rounded text-right text-sm"
+                placeholder="较好"
+              />
             </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-[#6b7c8d]">市场温度</span>
-              <input type="text" defaultValue="66.12°C" className="w-24 px-2 py-1 border rounded text-right" />
+            <div className="flex items-center justify-between gap-4 py-2">
+              <span className="text-[#6b7c8d] shrink-0">市场温度</span>
+              <input
+                type="text"
+                value={indicators.marketTemperature}
+                onChange={(e) => setIndicators((i) => ({ ...i, marketTemperature: e.target.value }))}
+                className="w-24 px-2 py-1 border rounded text-right"
+                placeholder="66.12°C"
+              />
+              <input
+                type="text"
+                value={indicators.tempStatus}
+                onChange={(e) => setIndicators((i) => ({ ...i, tempStatus: e.target.value }))}
+                className="w-20 px-2 py-1 border rounded text-right text-sm"
+                placeholder="偏热"
+              />
             </div>
           </div>
-          <button className="mt-4 px-4 py-2 bg-[#1e3a5f] text-white rounded-lg text-sm">
-            更新
-          </button>
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              onClick={handleSaveIndicators}
+              disabled={savingIndicators}
+              className="px-4 py-2 bg-[#1e3a5f] text-white rounded-lg text-sm disabled:opacity-50"
+            >
+              {savingIndicators ? '保存中...' : '更新'}
+            </button>
+            {successIndicators && <span className="text-green-600 text-sm">已保存，首页将显示最新数据</span>}
+          </div>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h3 className="font-medium text-[#1a2b3c] mb-2">版本信息</h3>

@@ -339,3 +339,48 @@ export async function saveAnnouncement(content: string): Promise<void> {
   const { error } = await supabase.from('system_announcement').upsert({ id: 1, content: content ?? '' }, { onConflict: 'id' })
   if (error) throw error
 }
+
+// ---------- 市场指标 ----------
+export interface MarketIndicatorsRow {
+  bondEquitySpread: string
+  spreadStatus: string
+  marketTemperature: string
+  tempStatus: string
+  updatedAt: string
+}
+
+export async function fetchMarketIndicators(): Promise<MarketIndicatorsRow> {
+  const { data, error } = await supabase.from('market_indicators').select('*').eq('id', 1).single()
+  if (error || !data) {
+    return {
+      bondEquitySpread: '4.40%',
+      spreadStatus: '较好',
+      marketTemperature: '66.12°C',
+      tempStatus: '偏热',
+      updatedAt: '',
+    }
+  }
+  return {
+    bondEquitySpread: String(data.bond_equity_spread ?? '4.40%'),
+    spreadStatus: String(data.spread_status ?? '较好'),
+    marketTemperature: String(data.market_temperature ?? '66.12°C'),
+    tempStatus: String(data.temp_status ?? '偏热'),
+    updatedAt: data.updated_at ? new Date(data.updated_at).toISOString().slice(0, 10) : '',
+  }
+}
+
+export async function saveMarketIndicators(row: MarketIndicatorsRow): Promise<void> {
+  const { error } = await supabase
+    .from('market_indicators')
+    .upsert(
+      {
+        id: 1,
+        bond_equity_spread: row.bondEquitySpread ?? '4.40%',
+        spread_status: row.spreadStatus ?? '较好',
+        market_temperature: row.marketTemperature ?? '66.12°C',
+        temp_status: row.tempStatus ?? '偏热',
+      },
+      { onConflict: 'id' }
+    )
+  if (error) throw error
+}

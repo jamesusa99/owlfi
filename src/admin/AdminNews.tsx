@@ -18,7 +18,7 @@ function NewsForm({
 }) {
   const isEdit = !!news
   const [form, setForm] = useState<AdminNews>(
-    news ?? { id: 0, title: '', summary: '', status: '草稿', publishTime: new Date().toISOString().slice(0, 10) }
+    news ?? { id: 0, title: '', summary: '', status: '已发布', publishTime: new Date().toISOString().slice(0, 10) }
   )
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -55,10 +55,10 @@ function NewsForm({
             <textarea value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} className="w-full px-4 py-2 border border-gray-200 rounded-lg min-h-[80px]" placeholder="选填" />
           </div>
           <div>
-            <FormLabel label="状态" required={false} hint="已发布：前端可见；草稿：仅后台可见" />
+            <FormLabel label="状态" required={false} hint="已发布：首页和资讯页会显示；草稿：仅后台可见，前端不显示" />
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as AdminNews['status'] })} className="w-full px-4 py-2 border border-gray-200 rounded-lg">
-              <option value="已发布">已发布</option>
-              <option value="草稿">草稿</option>
+              <option value="已发布">已发布（前端可见）</option>
+              <option value="草稿">草稿（仅后台）</option>
             </select>
           </div>
           <div>

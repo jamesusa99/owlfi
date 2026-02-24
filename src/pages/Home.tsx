@@ -2,23 +2,23 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Logo from '../components/Logo'
-import { fetchNewsForApp, fetchCoursesForApp, getAnnouncementForApp, getMarketIndicatorsForApp } from '../lib/publicApi'
-
-const services = [
-  { label: '组合管理', icon: '📁', path: '/portfolio' },
-  { label: '基金诊断', icon: '📊', path: '/research/diagnosis' },
-  { label: '深度调研', icon: '🔍', path: '/research/reports' },
-  { label: '挖宝专区', icon: '💎', path: '/treasure' },
-  { label: '猫头鹰连线', icon: '💬', path: '/forum' },
-  { label: '我的账户', icon: '👤', path: '/profile' },
-  { label: '基金画像', icon: '📈', path: '/research/fund-profile' },
-  { label: '路演日历', icon: '📅', path: '/roadshow' },
-  { label: '精选课堂', icon: '📚', path: '/classroom' },
-  { label: '市场资讯', icon: '📰', path: '/news' },
-  { label: '更多', icon: '⋯', path: '/classroom' },
-]
+import {
+  fetchNewsForApp,
+  fetchCoursesForApp,
+  getAnnouncementForApp,
+  getMarketIndicatorsForApp,
+  getHomeServicesForApp,
+  getClassroomConfigForApp,
+  getRoadshowConfigForApp,
+} from '../lib/publicApi'
 
 const hotTabs = ['推荐', '深度研究', '市场洞察']
+const defaultServices = [
+  { id: 0, label: '组合管理', icon: '📁', path: '/portfolio', sortOrder: 0 },
+  { id: 0, label: '基金诊断', icon: '📊', path: '/research/diagnosis', sortOrder: 1 },
+  { id: 0, label: '精选课堂', icon: '📚', path: '/classroom', sortOrder: 2 },
+  { id: 0, label: '市场资讯', icon: '📰', path: '/news', sortOrder: 3 },
+]
 
 export default function Home() {
   const navigate = useNavigate()
@@ -34,11 +34,22 @@ export default function Home() {
     tempStatus: string
     updatedAt: string
   } | null>(null)
+  const [services, setServices] = useState<{ id: number; label: string; icon: string; path: string; sortOrder: number }[]>(defaultServices)
+  const [classroomConfig, setClassroomConfig] = useState<{ title: string; categoryTabs: string[] }>({ title: '投顾学院', categoryTabs: ['基金经理精选', '基金比较研究', 'ETF策略研究', '绝对收益策略', '基金组合配置'] })
+  const [roadshowConfig, setRoadshowConfig] = useState<{ title: string; path: string; enabled: boolean } | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([fetchNewsForApp(), fetchCoursesForApp(), getAnnouncementForApp(), getMarketIndicatorsForApp()])
-      .then(([news, courseList, announcementContent, indicators]) => {
+    Promise.all([
+      fetchNewsForApp(),
+      fetchCoursesForApp(),
+      getAnnouncementForApp(),
+      getMarketIndicatorsForApp(),
+      getHomeServicesForApp(),
+      getClassroomConfigForApp(),
+      getRoadshowConfigForApp(),
+    ])
+      .then(([news, courseList, announcementContent, indicators, homeServices, classroom, roadshow]) => {
         if (cancelled) return
         setHotArticles(news.slice(0, 5).map((n) => ({ id: n.id, title: n.title, publishTime: n.publishTime })))
         setCourses(
@@ -46,6 +57,9 @@ export default function Home() {
         )
         setAnnouncement((announcementContent || '').trim())
         setMarketIndicators(indicators)
+        if (homeServices.length > 0) setServices(homeServices)
+        setClassroomConfig(classroom)
+        setRoadshowConfig(roadshow)
       })
       .catch(() => {})
     return () => { cancelled = true }
@@ -100,12 +114,12 @@ export default function Home() {
         </section>
       )}
 
-      {/* 服务入口网格 */}
+      {/* 服务入口网格（来自后台「首页配置」，不含「我的账户」；用户点底部「我的」进账户） */}
       <section className="bg-white rounded-2xl p-5 shadow-sm mb-6">
         <div className="grid grid-cols-5 gap-4">
           {services.map((s) => (
             <button
-              key={s.label}
+              key={s.id || s.path + s.label}
               onClick={() => navigate(s.path)}
               className="flex flex-col items-center gap-2 py-2 hover:bg-gray-50 rounded-xl transition-colors"
             >
@@ -168,19 +182,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 投顾学院 */}
+      {/* 投顾学院（标题与分类来自后台「首页配置」） */}
       <section className="bg-white rounded-2xl p-5 shadow-sm mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="font-bold text-[var(--owl-text)]">投顾学院</h3>
+          <h3 className="font-bold text-[var(--owl-text)]">{classroomConfig.title}</h3>
           <button onClick={() => navigate('/classroom')} className="text-sm text-red-500 font-medium">更多 ›</button>
         </div>
         <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-          {['基金经理精选', '基金比较研究', 'ETF策略研究', '绝对收益策略', '基金组合配置'].map((tab) => (
+          {classroomConfig.categoryTabs.map((tab, idx) => (
             <button
               key={tab}
               onClick={() => navigate(`/classroom/category/${encodeURIComponent(tab)}`)}
               className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
-                tab === '基金经理精选' ? 'bg-red-500 text-white' : 'bg-gray-100 text-[var(--owl-text-muted)]'
+                idx === 0 ? 'bg-red-500 text-white' : 'bg-gray-100 text-[var(--owl-text-muted)]'
               }`}
             >
               {tab}
@@ -225,25 +239,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 资产概览 - 登录用户显示 */}
-      {isAuthenticated && (
+      {/* 路演日历（后台「首页配置」开启时显示） */}
+      {roadshowConfig?.enabled && (
         <section
-          onClick={() => navigate('/portfolio')}
-          className="bg-white rounded-2xl p-5 shadow-sm mb-6 cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => navigate(roadshowConfig.path)}
+          className="bg-white rounded-2xl p-5 shadow-sm mb-6 cursor-pointer hover:shadow-md transition-shadow border border-gray-100"
         >
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-medium text-[var(--owl-text)]">资产概览</h3>
-            <span className="text-sm text-[var(--owl-primary)]">查看详情 ›</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-[var(--owl-bg)] rounded-xl p-4">
-              <p className="text-xs text-[var(--owl-text-muted)] mb-1">总资产(元)</p>
-              <p className="text-xl font-bold text-[var(--owl-primary)]">128,560.00</p>
-            </div>
-            <div className="bg-[var(--owl-bg)] rounded-xl p-4">
-              <p className="text-xs text-[var(--owl-text-muted)] mb-1">累计收益(元)</p>
-              <p className="text-xl font-bold text-green-600">+5,260.80</p>
-            </div>
+          <div className="flex justify-between items-center">
+            <h3 className="font-bold text-[var(--owl-text)]">{roadshowConfig.title}</h3>
+            <span className="text-sm text-[var(--owl-primary)]">查看 ›</span>
           </div>
         </section>
       )}

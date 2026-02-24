@@ -7,6 +7,7 @@ const navItems = [
   { path: '/admin/news', label: '资讯管理', icon: '📰' },
   { path: '/admin/orders', label: '订单管理', icon: '📄' },
   { path: '/admin/forum', label: '论坛管理', icon: '💬' },
+  { path: '/admin/home-config', label: '首页配置', icon: '🏠' },
   { path: '/admin/settings', label: '系统设置', icon: '⚙️' },
 ]
 

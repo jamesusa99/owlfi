@@ -8,6 +8,9 @@ import {
   fetchForumPosts,
   fetchAnnouncement,
   fetchMarketIndicators,
+  fetchHomeServices,
+  fetchClassroomConfig,
+  fetchRoadshowConfig,
   type AdminCourse,
   type AdminLesson,
 } from './adminDb'
@@ -98,4 +101,27 @@ export interface MarketIndicatorsForApp {
 
 export async function getMarketIndicatorsForApp(): Promise<MarketIndicatorsForApp> {
   return fetchMarketIndicators()
+}
+
+/** 首页入口（组合管理、深度调研等，后台可配置） */
+export interface HomeServiceForApp {
+  id: number
+  label: string
+  icon: string
+  path: string
+  sortOrder: number
+}
+
+export async function getHomeServicesForApp(): Promise<HomeServiceForApp[]> {
+  return fetchHomeServices()
+}
+
+/** 首页投顾学院区块配置 */
+export async function getClassroomConfigForApp(): Promise<{ title: string; categoryTabs: string[] }> {
+  return fetchClassroomConfig()
+}
+
+/** 首页路演日历区块配置 */
+export async function getRoadshowConfigForApp(): Promise<{ title: string; path: string; enabled: boolean }> {
+  return fetchRoadshowConfig()
 }

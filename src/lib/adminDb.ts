@@ -384,3 +384,92 @@ export async function saveMarketIndicators(row: MarketIndicatorsRow): Promise<vo
     )
   if (error) throw error
 }
+
+// ---------- 首页配置 ----------
+export interface HomeServiceRow {
+  id: number
+  label: string
+  icon: string
+  path: string
+  sortOrder: number
+}
+
+export async function fetchHomeServices(): Promise<HomeServiceRow[]> {
+  const { data, error } = await supabase.from('home_services').select('*').order('sort_order', { ascending: true })
+  if (error) return []
+  return (data ?? []).map((r) => ({
+    id: Number(r.id),
+    label: String(r.label ?? ''),
+    icon: String(r.icon ?? '📌'),
+    path: String(r.path ?? '#'),
+    sortOrder: Number(r.sort_order ?? 0),
+  }))
+}
+
+export async function saveHomeService(row: HomeServiceRow): Promise<HomeServiceRow> {
+  const payload = {
+    label: row.label,
+    icon: row.icon,
+    path: row.path,
+    sort_order: row.sortOrder,
+  }
+  if (row.id && row.id > 0) {
+    const { data, error } = await supabase.from('home_services').update(payload).eq('id', row.id).select('*').single()
+    if (error) throw error
+    return { id: data.id, label: data.label, icon: data.icon, path: data.path, sortOrder: data.sort_order }
+  } else {
+    const { data, error } = await supabase.from('home_services').insert(payload).select('*').single()
+    if (error) throw error
+    return { id: data.id, label: data.label, icon: data.icon, path: data.path, sortOrder: data.sort_order }
+  }
+}
+
+export async function deleteHomeService(id: number): Promise<void> {
+  const { error } = await supabase.from('home_services').delete().eq('id', id)
+  if (error) throw error
+}
+
+export interface HomeClassroomConfig {
+  title: string
+  categoryTabs: string[]
+}
+
+export async function fetchClassroomConfig(): Promise<HomeClassroomConfig> {
+  const { data, error } = await supabase.from('home_classroom_config').select('*').eq('id', 1).single()
+  if (error || !data) return { title: '投顾学院', categoryTabs: ['基金经理精选', '基金比较研究', 'ETF策略研究', '绝对收益策略', '基金组合配置'] }
+  const tabs = data.category_tabs
+  return {
+    title: String(data.title ?? '投顾学院'),
+    categoryTabs: Array.isArray(tabs) ? tabs.map(String) : [],
+  }
+}
+
+export async function saveClassroomConfig(config: HomeClassroomConfig): Promise<void> {
+  const { error } = await supabase
+    .from('home_classroom_config')
+    .upsert({ id: 1, title: config.title ?? '投顾学院', category_tabs: config.categoryTabs ?? [] }, { onConflict: 'id' })
+  if (error) throw error
+}
+
+export interface HomeRoadshowConfig {
+  title: string
+  path: string
+  enabled: boolean
+}
+
+export async function fetchRoadshowConfig(): Promise<HomeRoadshowConfig> {
+  const { data, error } = await supabase.from('home_roadshow_config').select('*').eq('id', 1).single()
+  if (error || !data) return { title: '路演日历', path: '/roadshow', enabled: true }
+  return {
+    title: String(data.title ?? '路演日历'),
+    path: String(data.path ?? '/roadshow'),
+    enabled: Boolean(data.enabled),
+  }
+}
+
+export async function saveRoadshowConfig(config: HomeRoadshowConfig): Promise<void> {
+  const { error } = await supabase
+    .from('home_roadshow_config')
+    .upsert({ id: 1, title: config.title ?? '路演日历', path: config.path ?? '/roadshow', enabled: config.enabled !== false }, { onConflict: 'id' })
+  if (error) throw error
+}

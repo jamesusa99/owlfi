@@ -87,6 +87,7 @@ import AdminNews from './admin/AdminNews'
 import AdminOrders from './admin/AdminOrders'
 import AdminForum from './admin/AdminForum'
 import AdminSettings from './admin/AdminSettings'
+import AdminHomeConfig from './admin/AdminHomeConfig'
 
 function App() {
   return (
@@ -101,6 +102,7 @@ function App() {
           <Route path="news" element={<AdminNews />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="forum" element={<AdminForum />} />
+          <Route path="home-config" element={<AdminHomeConfig />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
         <Route path="/" element={<Layout />}>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { AdminCourse, AdminLesson } from '../lib/adminDb'
 import { fetchCourses, saveCourse, deleteCourse, nextLessonId } from '../lib/adminDb'
+import { getErrorMessage } from './utils'
 import AdminConfirmModal from './AdminConfirmModal'
 
 function CourseForm({
@@ -205,7 +206,7 @@ export default function AdminCourses() {
       const data = await fetchCourses()
       setCourses(data)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '加载失败')
+      setError(getErrorMessage(e, '加载失败'))
     } finally {
       setLoading(false)
     }
@@ -223,7 +224,7 @@ export default function AdminCourses() {
       setFormCourse(null)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : '保存失败')
+      setError(getErrorMessage(e, '保存失败'))
     } finally {
       setSaving(false)
     }
@@ -235,7 +236,7 @@ export default function AdminCourses() {
       setCourses((prev) => prev.filter((x) => x.id !== id))
       setDeleteId(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '删除失败')
+      setError(getErrorMessage(e, '删除失败'))
     }
   }
 

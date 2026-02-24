@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react'
-import type { AdminForumPost } from '../lib/adminDb'
-import { fetchForumPosts, saveForumPost, deleteForumPost } from '../lib/adminDb'
+import type { AdminForumPost, AdminUser } from '../lib/adminDb'
+import { fetchForumPosts, saveForumPost, deleteForumPost, fetchUsers } from '../lib/adminDb'
+import { getErrorMessage } from './utils'
 import AdminConfirmModal from './AdminConfirmModal'
 
 function ForumForm({
   post,
+  users,
   onSave,
   onCancel,
 }: {
   post: AdminForumPost | null
+  users: AdminUser[]
   onSave: (p: AdminForumPost) => void
   onCancel: () => void
 }) {
@@ -59,13 +62,28 @@ function ForumForm({
           </div>
           <div>
             <label className="block text-sm font-medium text-[#6b7c8d] mb-1">作者</label>
-            <input
-              type="text"
-              value={form.author}
-              onChange={(e) => setForm({ ...form, author: e.target.value })}
+            <select
+              value={users.some((u) => u.nickname === form.author) ? form.author : form.author ? '_other_' : ''}
+              onChange={(e) => setForm({ ...form, author: e.target.value === '_other_' ? '' : e.target.value })}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg"
-              placeholder="用户****1234"
-            />
+            >
+              <option value="">请选择作者</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.nickname}>
+                  {u.nickname} ({u.id})
+                </option>
+              ))}
+              <option value="_other_">其他（手动输入）</option>
+            </select>
+            {!users.some((u) => u.nickname === form.author) && (
+              <input
+                type="text"
+                value={form.author}
+                onChange={(e) => setForm({ ...form, author: e.target.value })}
+                placeholder="输入作者显示名"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg mt-2"
+              />
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-[#6b7c8d] mb-1">内容</label>
@@ -122,6 +140,7 @@ function ForumForm({
 
 export default function AdminForum() {
   const [list, setList] = useState<AdminForumPost[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -132,10 +151,11 @@ export default function AdminForum() {
     setLoading(true)
     setError(null)
     try {
-      const data = await fetchForumPosts()
-      setList(data)
+      const [postsData, usersData] = await Promise.all([fetchForumPosts(), fetchUsers()])
+      setList(postsData)
+      setUsers(usersData)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '加载失败')
+      setError(getErrorMessage(e, '加载失败'))
     } finally {
       setLoading(false)
     }
@@ -153,7 +173,7 @@ export default function AdminForum() {
       setFormItem(null)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : '保存失败')
+      setError(getErrorMessage(e, '保存失败'))
     } finally {
       setSaving(false)
     }
@@ -165,7 +185,7 @@ export default function AdminForum() {
       setList((prev) => prev.filter((x) => x.id !== id))
       setDeleteId(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '删除失败')
+      setError(getErrorMessage(e, '删除失败'))
     }
   }
 
@@ -226,8 +246,8 @@ export default function AdminForum() {
           <div className="bg-white rounded-xl px-6 py-4">保存中...</div>
         </div>
       )}
-      {formItem && formItem !== 'add' && <ForumForm post={formItem} onSave={handleSave} onCancel={() => setFormItem(null)} />}
-      {formItem === 'add' && <ForumForm post={null} onSave={handleSave} onCancel={() => setFormItem(null)} />}
+      {formItem && formItem !== 'add' && <ForumForm post={formItem} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} />}
+      {formItem === 'add' && <ForumForm post={null} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} />}
       {deleteId !== null && (
         <AdminConfirmModal
           title="确定要删除该帖子吗？此操作不可恢复。"

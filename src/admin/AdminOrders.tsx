@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react'
-import type { AdminOrder } from '../lib/adminDb'
-import { fetchOrders, saveOrder, deleteOrder, generateOrderId } from '../lib/adminDb'
+import type { AdminOrder, AdminUser } from '../lib/adminDb'
+import { fetchOrders, saveOrder, deleteOrder, generateOrderId, fetchUsers } from '../lib/adminDb'
+import { getErrorMessage } from './utils'
 import AdminConfirmModal from './AdminConfirmModal'
 
 function OrderForm({
   order,
+  users,
   onSave,
   onCancel,
 }: {
   order: AdminOrder | null
+  users: AdminUser[]
   onSave: (o: AdminOrder) => void
   onCancel: () => void
 }) {
@@ -48,13 +51,37 @@ function OrderForm({
           </div>
           <div>
             <label className="block text-sm font-medium text-[#6b7c8d] mb-1">用户</label>
-            <input
-              type="text"
-              value={form.user}
-              onChange={(e) => setForm({ ...form, user: e.target.value })}
+            <select
+              value={
+                users.some((u) => u.nickname === form.user)
+                  ? form.user
+                  : form.user
+                    ? '_other_'
+                    : ''
+              }
+              onChange={(e) => {
+                const v = e.target.value
+                setForm({ ...form, user: v === '_other_' ? '' : v })
+              }}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg"
-              placeholder="138****1234"
-            />
+            >
+              <option value="">请选择用户</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.nickname}>
+                  {u.nickname} ({u.id})
+                </option>
+              ))}
+              <option value="_other_">其他（手动输入）</option>
+            </select>
+            {!users.some((u) => u.nickname === form.user) && (
+              <input
+                type="text"
+                value={form.user}
+                onChange={(e) => setForm({ ...form, user: e.target.value })}
+                placeholder="输入用户显示名"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg mt-2"
+              />
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-[#6b7c8d] mb-1">类型</label>
@@ -106,6 +133,7 @@ function OrderForm({
 
 export default function AdminOrders() {
   const [list, setList] = useState<AdminOrder[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -116,10 +144,11 @@ export default function AdminOrders() {
     setLoading(true)
     setError(null)
     try {
-      const data = await fetchOrders()
-      setList(data)
+      const [ordersData, usersData] = await Promise.all([fetchOrders(), fetchUsers()])
+      setList(ordersData)
+      setUsers(usersData)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '加载失败')
+      setError(getErrorMessage(e, '加载失败'))
     } finally {
       setLoading(false)
     }
@@ -137,7 +166,7 @@ export default function AdminOrders() {
       setFormItem(null)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : '保存失败')
+      setError(getErrorMessage(e, '保存失败'))
     } finally {
       setSaving(false)
     }
@@ -149,7 +178,7 @@ export default function AdminOrders() {
       setList((prev) => prev.filter((x) => x.id !== id))
       setDeleteId(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '删除失败')
+      setError(getErrorMessage(e, '删除失败'))
     }
   }
 
@@ -210,8 +239,8 @@ export default function AdminOrders() {
           <div className="bg-white rounded-xl px-6 py-4">保存中...</div>
         </div>
       )}
-      {formItem && formItem !== 'add' && <OrderForm order={formItem} onSave={handleSave} onCancel={() => setFormItem(null)} />}
-      {formItem === 'add' && <OrderForm order={null} onSave={handleSave} onCancel={() => setFormItem(null)} />}
+      {formItem && formItem !== 'add' && <OrderForm order={formItem} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} />}
+      {formItem === 'add' && <OrderForm order={null} users={users} onSave={handleSave} onCancel={() => setFormItem(null)} />}
       {deleteId && (
         <AdminConfirmModal
           title="确定要删除该订单吗？此操作不可恢复。"

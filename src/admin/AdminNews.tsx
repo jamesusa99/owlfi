@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { AdminNews } from '../lib/adminDb'
 import { fetchNews, saveNewsItem, deleteNews } from '../lib/adminDb'
+import { getErrorMessage } from './utils'
 import AdminConfirmModal from './AdminConfirmModal'
 
 function NewsForm({ news, onSave, onCancel }: { news: AdminNews | null; onSave: (n: AdminNews) => void; onCancel: () => void }) {
@@ -70,7 +71,7 @@ export default function AdminNews() {
       const data = await fetchNews()
       setList(data)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '加载失败')
+      setError(getErrorMessage(e, '加载失败'))
     } finally {
       setLoading(false)
     }
@@ -88,7 +89,7 @@ export default function AdminNews() {
       setFormItem(null)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : '保存失败')
+      setError(getErrorMessage(e, '保存失败'))
     } finally {
       setSaving(false)
     }
@@ -100,7 +101,7 @@ export default function AdminNews() {
       setList((prev) => prev.filter((x) => x.id !== id))
       setDeleteId(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '删除失败')
+      setError(getErrorMessage(e, '删除失败'))
     }
   }
 

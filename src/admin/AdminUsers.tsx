@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react'
 import type { AdminUser } from '../lib/adminDb'
 import { fetchUsers, saveUser, deleteUser, generateUserId } from '../lib/adminDb'
+import { getErrorMessage } from './utils'
 
 interface UserFormProps {
   user: AdminUser | null
+  users: AdminUser[]
   onSave: (u: AdminUser) => void
   onCancel: () => void
+  onSelectExistingUser?: (u: AdminUser) => void
 }
 
-function UserForm({ user, onSave, onCancel }: UserFormProps) {
+function UserForm({ user, users, onSave, onCancel, onSelectExistingUser }: UserFormProps) {
   const isEdit = !!user
   const [form, setForm] = useState<AdminUser>(
     user ?? {
@@ -35,13 +38,47 @@ function UserForm({ user, onSave, onCancel }: UserFormProps) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-[#6b7c8d] mb-1">用户ID</label>
-            <input
-              type="text"
-              value={form.id}
-              onChange={(e) => setForm({ ...form, id: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg"
-              placeholder="如 U1A2B3C4"
-            />
+            {isEdit ? (
+              <input
+                type="text"
+                value={form.id}
+                onChange={(e) => setForm({ ...form, id: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                placeholder="如 U1A2B3C4"
+              />
+            ) : (
+              <>
+                <select
+                  value={users.some((u) => u.id === form.id) ? form.id : '_new_'}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    if (v === '_new_') {
+                      setForm((f) => ({ ...f, id: f.id || generateUserId() }))
+                    } else {
+                      const existing = users.find((u) => u.id === v)
+                      if (existing && onSelectExistingUser) onSelectExistingUser(existing)
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                >
+                  <option value="_new_">新建用户（手动输入 ID）</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.id} - {u.nickname}
+                    </option>
+                  ))}
+                </select>
+                {!users.some((u) => u.id === form.id) && (
+                  <input
+                    type="text"
+                    value={form.id}
+                    onChange={(e) => setForm({ ...form, id: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg mt-2"
+                    placeholder="输入新用户 ID，如 U1A2B3C4"
+                  />
+                )}
+              </>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-[#6b7c8d] mb-1">手机号</label>
@@ -122,7 +159,7 @@ export default function AdminUsers() {
       const data = await fetchUsers()
       setUsers(data)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '加载失败')
+      setError(getErrorMessage(e, '加载失败'))
     } finally {
       setLoading(false)
     }
@@ -140,7 +177,7 @@ export default function AdminUsers() {
       setFormUser(null)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : '保存失败')
+      setError(getErrorMessage(e, '保存失败'))
     } finally {
       setSaving(false)
     }
@@ -152,7 +189,7 @@ export default function AdminUsers() {
       setUsers((prev) => prev.filter((x) => x.id !== id))
       setDeleteId(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '删除失败')
+      setError(getErrorMessage(e, '删除失败'))
     }
   }
 
@@ -231,10 +268,10 @@ export default function AdminUsers() {
       )}
 
       {formUser && formUser !== 'add' && (
-        <UserForm user={formUser} onSave={handleSave} onCancel={() => setFormUser(null)} />
+        <UserForm user={formUser} users={users} onSave={handleSave} onCancel={() => setFormUser(null)} />
       )}
       {formUser === 'add' && (
-        <UserForm user={null} onSave={handleSave} onCancel={() => setFormUser(null)} />
+        <UserForm user={null} users={users} onSave={handleSave} onCancel={() => setFormUser(null)} onSelectExistingUser={(u) => setFormUser(u)} />
       )}
       {saving && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">

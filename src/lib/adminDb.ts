@@ -204,12 +204,17 @@ export async function fetchNews(): Promise<AdminNews[]> {
   return (data ?? []).map(newsFromRow)
 }
 
+function toDateString(s: string | undefined): string {
+  if (s && /^\d{4}-\d{2}-\d{2}$/.test(s)) return s
+  return new Date().toISOString().slice(0, 10)
+}
+
 export async function saveNewsItem(item: AdminNews): Promise<AdminNews> {
   const row = {
-    title: item.title,
-    summary: item.summary,
-    status: item.status,
-    publish_time: item.publishTime,
+    title: item.title ?? '',
+    summary: item.summary ?? '',
+    status: item.status ?? '草稿',
+    publish_time: toDateString(item.publishTime),
   }
   if (item.id && item.id > 0) {
     const { data, error } = await supabase.from('news').update(row).eq('id', item.id).select('*').single()

@@ -88,6 +88,8 @@ import AdminOrders from './admin/AdminOrders'
 import AdminForum from './admin/AdminForum'
 import AdminSettings from './admin/AdminSettings'
 import AdminHomeConfig from './admin/AdminHomeConfig'
+import AdminClassroom from './admin/AdminClassroom'
+import AdminRoadshow from './admin/AdminRoadshow'
 
 function App() {
   return (
@@ -102,6 +104,8 @@ function App() {
           <Route path="news" element={<AdminNews />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="forum" element={<AdminForum />} />
+          <Route path="classroom" element={<AdminClassroom />} />
+          <Route path="roadshow" element={<AdminRoadshow />} />
           <Route path="home-config" element={<AdminHomeConfig />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>

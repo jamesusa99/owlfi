@@ -17,6 +17,9 @@ export interface AdminLesson {
   videoBvid?: string
 }
 
+export type CourseDifficulty = '初级' | '中级' | '高级'
+export type CourseVisibility = '全部' | '试听' | '会员' | '白名单'
+
 export interface AdminCourse {
   id: number
   title: string
@@ -27,6 +30,48 @@ export interface AdminCourse {
   desc: string
   videoBvid?: string
   lessons: AdminLesson[]
+  instructorId?: number | null
+  coverUrl?: string | null
+  knowledgeDomain?: string
+  certificationDimension?: string
+  seriesId?: number | null
+  difficulty?: CourseDifficulty
+  pdfUrl?: string | null
+  visibility?: CourseVisibility
+}
+
+export interface AdminInstructor {
+  id: number
+  name: string
+  avatarUrl?: string | null
+  title: string
+  bio: string
+  sortOrder: number
+}
+
+export interface AdminCourseSeries {
+  id: number
+  title: string
+  coverUrl?: string | null
+  desc: string
+  sortOrder: number
+}
+
+export type RoadshowStatus = '预热中' | '直播中' | '回放中' | '已结束'
+
+export interface AdminRoadshowEvent {
+  id: number
+  title: string
+  startTime: string
+  durationMinutes: number
+  status: RoadshowStatus
+  externalUrl?: string | null
+  h5Config?: Record<string, unknown>
+  reservationEnabled: boolean
+  reservationBaseCount: number
+  reservationRealCount: number
+  replayUrl?: string | null
+  materials?: unknown[]
 }
 
 export interface AdminNews {
@@ -117,6 +162,14 @@ function courseFromRow(r: Record<string, unknown>, lessons: AdminLesson[]): Admi
     desc: String(r.desc ?? ''),
     videoBvid: r.video_bvid ? String(r.video_bvid) : undefined,
     lessons,
+    instructorId: r.instructor_id != null ? Number(r.instructor_id) : null,
+    coverUrl: r.cover_url != null ? String(r.cover_url) : null,
+    knowledgeDomain: String(r.knowledge_domain ?? ''),
+    certificationDimension: String(r.certification_dimension ?? ''),
+    seriesId: r.series_id != null ? Number(r.series_id) : null,
+    difficulty: (r.difficulty as AdminCourse['difficulty']) || '初级',
+    pdfUrl: r.pdf_url != null ? String(r.pdf_url) : null,
+    visibility: (r.visibility as AdminCourse['visibility']) || '全部',
   }
 }
 
@@ -149,6 +202,14 @@ export async function saveCourse(course: AdminCourse): Promise<void> {
     thumbnail: course.thumbnail,
     desc: course.desc,
     video_bvid: course.videoBvid || null,
+    instructor_id: course.instructorId ?? null,
+    cover_url: course.coverUrl ?? null,
+    knowledge_domain: course.knowledgeDomain ?? '',
+    certification_dimension: course.certificationDimension ?? '',
+    series_id: course.seriesId ?? null,
+    difficulty: course.difficulty ?? '初级',
+    pdf_url: course.pdfUrl ?? null,
+    visibility: course.visibility ?? '全部',
   }
   if (!isNew) courseRow.id = course.id
 

@@ -1,41 +1,24 @@
 import { useState, useEffect } from 'react'
-import type { HomeServiceRow, HomeClassroomConfig, HomeRoadshowConfig } from '../lib/adminDb'
-import {
-  fetchHomeServices,
-  saveHomeService,
-  deleteHomeService,
-  fetchClassroomConfig,
-  saveClassroomConfig,
-  fetchRoadshowConfig,
-  saveRoadshowConfig,
-} from '../lib/adminDb'
+import type { HomeServiceRow } from '../lib/adminDb'
+import { fetchHomeServices, saveHomeService, deleteHomeService } from '../lib/adminDb'
 import { getErrorMessage } from './utils'
 
 const defaultService: HomeServiceRow = { id: 0, label: '', icon: '📌', path: '#', sortOrder: 0 }
 
 export default function AdminHomeConfig() {
   const [services, setServices] = useState<HomeServiceRow[]>([])
-  const [classroom, setClassroom] = useState<HomeClassroomConfig>({ title: '投顾学院', categoryTabs: [] })
-  const [roadshow, setRoadshow] = useState<HomeRoadshowConfig>({ title: '路演日历', path: '/roadshow', enabled: true })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState<string | null>(null)
   const [editingService, setEditingService] = useState<HomeServiceRow | null>(null)
   const [newService, setNewService] = useState<HomeServiceRow | null>(null)
-  const [classroomTabsStr, setClassroomTabsStr] = useState('')
-
-  useEffect(() => {
-    if (classroom.categoryTabs.length) setClassroomTabsStr(classroom.categoryTabs.join('\n'))
-  }, [classroom.categoryTabs])
 
   const load = async () => {
     setLoading(true)
     setError(null)
     try {
-      const [s, c, r] = await Promise.all([fetchHomeServices(), fetchClassroomConfig(), fetchRoadshowConfig()])
+      const s = await fetchHomeServices()
       setServices(s)
-      setClassroom(c)
-      setRoadshow(r)
     } catch (e) {
       setError(getErrorMessage(e, '加载失败'))
     } finally {
@@ -70,32 +53,6 @@ export default function AdminHomeConfig() {
       await load()
     } catch (e) {
       setError(getErrorMessage(e, '删除失败'))
-    }
-  }
-
-  const handleSaveClassroom = async () => {
-    setSaving('classroom')
-    setError(null)
-    try {
-      const tabs = classroomTabsStr.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean)
-      await saveClassroomConfig({ title: classroom.title, categoryTabs: tabs })
-      setClassroom((prev) => ({ ...prev, categoryTabs: tabs }))
-    } catch (e) {
-      setError(getErrorMessage(e, '保存失败'))
-    } finally {
-      setSaving(null)
-    }
-  }
-
-  const handleSaveRoadshow = async () => {
-    setSaving('roadshow')
-    setError(null)
-    try {
-      await saveRoadshowConfig(roadshow)
-    } catch (e) {
-      setError(getErrorMessage(e, '保存失败'))
-    } finally {
-      setSaving(null)
     }
   }
 
@@ -165,54 +122,7 @@ export default function AdminHomeConfig() {
           )}
         </div>
       </section>
-
-      {/* 投顾学院配置 */}
-      <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
-        <h3 className="font-medium text-[#1a2b3c] mb-2">投顾学院区块</h3>
-        <p className="text-xs text-[#6b7c8d] mb-4">首页「投顾学院」标题及分类标签，每行一个或逗号分隔。</p>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm text-[#6b7c8d] mb-1">区块标题</label>
-            <input
-              type="text"
-              value={classroom.title}
-              onChange={(e) => setClassroom((c) => ({ ...c, title: e.target.value }))}
-              className="w-full max-w-xs px-3 py-2 border rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-[#6b7c8d] mb-1">分类标签（每行一个或逗号分隔）</label>
-            <textarea
-              value={classroomTabsStr}
-              onChange={(e) => setClassroomTabsStr(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg min-h-[100px]"
-              placeholder="基金经理精选&#10;基金比较研究&#10;ETF策略研究"
-            />
-          </div>
-          <button onClick={handleSaveClassroom} disabled={saving === 'classroom'} className="px-4 py-2 bg-[#1e3a5f] text-white rounded-lg text-sm">保存</button>
-        </div>
-      </section>
-
-      {/* 路演日历配置 */}
-      <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="font-medium text-[#1a2b3c] mb-2">路演日历</h3>
-        <p className="text-xs text-[#6b7c8d] mb-4">路演日历区块的标题与链接，关闭后首页不显示该区块。</p>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm text-[#6b7c8d] mb-1">标题</label>
-            <input type="text" value={roadshow.title} onChange={(e) => setRoadshow((r) => ({ ...r, title: e.target.value }))} className="w-full max-w-xs px-3 py-2 border rounded-lg" />
-          </div>
-          <div>
-            <label className="block text-sm text-[#6b7c8d] mb-1">跳转路径</label>
-            <input type="text" value={roadshow.path} onChange={(e) => setRoadshow((r) => ({ ...r, path: e.target.value }))} className="w-full max-w-xs px-3 py-2 border rounded-lg font-mono" />
-          </div>
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={roadshow.enabled} onChange={(e) => setRoadshow((r) => ({ ...r, enabled: e.target.checked }))} />
-            <span className="text-sm">在首页显示路演日历区块</span>
-          </label>
-          <button onClick={handleSaveRoadshow} disabled={saving === 'roadshow'} className="px-4 py-2 bg-[#1e3a5f] text-white rounded-lg text-sm">保存</button>
-        </div>
-      </section>
+      <p className="text-sm text-[#6b7c8d] mt-4">投顾学院、路演日历的区块配置请前往侧栏「投顾学院」「路演日历」管理。</p>
     </div>
   )
 }

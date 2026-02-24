@@ -4,6 +4,8 @@ const navItems = [
   { path: '/admin', label: '控制台', icon: '📊' },
   { path: '/admin/users', label: '用户管理', icon: '👥' },
   { path: '/admin/courses', label: '课程管理', icon: '📚' },
+  { path: '/admin/classroom', label: '投顾学院', icon: '🎓' },
+  { path: '/admin/roadshow', label: '路演日历', icon: '📅' },
   { path: '/admin/news', label: '资讯管理', icon: '📰' },
   { path: '/admin/orders', label: '订单管理', icon: '📄' },
   { path: '/admin/forum', label: '论坛管理', icon: '💬' },

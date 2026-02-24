@@ -57,9 +57,10 @@ export default function AdminRoadshow() {
     setError(null)
     try {
       const list = await fetchRoadshowEvents()
-      setEvents(list)
+      setEvents(Array.isArray(list) ? list : [])
     } catch (e) {
       setError(getErrorMessage(e, '加载失败'))
+      setEvents([])
     } finally {
       setLoading(false)
     }

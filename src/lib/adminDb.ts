@@ -682,9 +682,13 @@ function roadshowEventFromRow(r: Record<string, unknown>): AdminRoadshowEvent {
 }
 
 export async function fetchRoadshowEvents(): Promise<AdminRoadshowEvent[]> {
-  const { data, error } = await supabase.from('roadshow_events').select('*').order('start_time', { ascending: false })
-  if (error) throw error
-  return (data ?? []).map(roadshowEventFromRow)
+  try {
+    const { data, error } = await supabase.from('roadshow_events').select('*').order('start_time', { ascending: false })
+    if (error) throw error
+    return (data ?? []).map(roadshowEventFromRow)
+  } catch {
+    return []
+  }
 }
 
 export async function saveRoadshowEvent(ev: AdminRoadshowEvent): Promise<void> {

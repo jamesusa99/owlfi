@@ -77,12 +77,32 @@ import MarketIndicatorDetail from './pages/MarketIndicatorDetail'
 import ClassroomCategory from './pages/ClassroomCategory'
 import HotNews from './pages/HotNews'
 import InstitutionalClients from './pages/InstitutionalClients'
+import AdminLogin from './admin/AdminLogin'
+import AdminLayout from './admin/AdminLayout'
+import AdminProtectedRoute from './admin/AdminProtectedRoute'
+import AdminDashboard from './admin/AdminDashboard'
+import AdminUsers from './admin/AdminUsers'
+import AdminCourses from './admin/AdminCourses'
+import AdminNews from './admin/AdminNews'
+import AdminOrders from './admin/AdminOrders'
+import AdminForum from './admin/AdminForum'
+import AdminSettings from './admin/AdminSettings'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminProtectedRoute><AdminLayout /></AdminProtectedRoute>}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="courses" element={<AdminCourses />} />
+          <Route path="news" element={<AdminNews />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="forum" element={<AdminForum />} />
+          <Route path="settings" element={<AdminSettings />} />
+        </Route>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="classroom" element={<Classroom />} />

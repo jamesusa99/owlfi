@@ -248,6 +248,117 @@ export function nextLessonId(lessons: AdminLesson[]): number {
   return Math.max(0, ...lessons.map((l) => l.id)) + 1
 }
 
+// ---------- 讲师库 ----------
+function instructorFromRow(r: Record<string, unknown>): AdminInstructor {
+  return {
+    id: Number(r.id),
+    name: String(r.name ?? ''),
+    avatarUrl: r.avatar_url != null ? String(r.avatar_url) : null,
+    title: String(r.title ?? ''),
+    bio: String(r.bio ?? ''),
+    sortOrder: Number(r.sort_order ?? 0),
+  }
+}
+
+export async function fetchInstructors(): Promise<AdminInstructor[]> {
+  const { data, error } = await supabase.from('instructors').select('*').order('sort_order', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map(instructorFromRow)
+}
+
+export async function saveInstructor(inst: AdminInstructor): Promise<void> {
+  const row = {
+    name: inst.name ?? '',
+    avatar_url: inst.avatarUrl ?? null,
+    title: inst.title ?? '',
+    bio: inst.bio ?? '',
+    sort_order: inst.sortOrder ?? 0,
+  }
+  if (inst.id && inst.id > 0) {
+    const { error } = await supabase.from('instructors').update(row).eq('id', inst.id)
+    if (error) throw error
+  } else {
+    const { error } = await supabase.from('instructors').insert(row)
+    if (error) throw error
+  }
+}
+
+export async function deleteInstructor(id: number): Promise<void> {
+  const { error } = await supabase.from('instructors').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ---------- 系列课 ----------
+function courseSeriesFromRow(r: Record<string, unknown>): AdminCourseSeries {
+  return {
+    id: Number(r.id),
+    title: String(r.title ?? ''),
+    coverUrl: r.cover_url != null ? String(r.cover_url) : null,
+    desc: String(r.desc ?? ''),
+    sortOrder: Number(r.sort_order ?? 0),
+  }
+}
+
+export async function fetchCourseSeries(): Promise<AdminCourseSeries[]> {
+  const { data, error } = await supabase.from('course_series').select('*').order('sort_order', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map(courseSeriesFromRow)
+}
+
+export async function saveCourseSeries(series: AdminCourseSeries): Promise<void> {
+  const row = {
+    title: series.title ?? '',
+    cover_url: series.coverUrl ?? null,
+    desc: series.desc ?? '',
+    sort_order: series.sortOrder ?? 0,
+  }
+  if (series.id && series.id > 0) {
+    const { error } = await supabase.from('course_series').update(row).eq('id', series.id)
+    if (error) throw error
+  } else {
+    const { error } = await supabase.from('course_series').insert(row)
+    if (error) throw error
+  }
+}
+
+export async function deleteCourseSeries(id: number): Promise<void> {
+  const { error } = await supabase.from('course_series').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ---------- 学院分类配置（知识领域、认证体系） ----------
+export interface AcademyConfig {
+  knowledgeDomains: string[]
+  certificationDimensions: string[]
+}
+
+export async function fetchAcademyConfig(): Promise<AcademyConfig> {
+  const { data, error } = await supabase.from('academy_config').select('*').eq('id', 1).single()
+  if (error || !data) {
+    return { knowledgeDomains: [], certificationDimensions: [] }
+  }
+  const kd = data.knowledge_domains
+  const cd = data.certification_dimensions
+  return {
+    knowledgeDomains: Array.isArray(kd) ? kd.map(String) : [],
+    certificationDimensions: Array.isArray(cd) ? cd.map(String) : [],
+  }
+}
+
+export async function saveAcademyConfig(config: AcademyConfig): Promise<void> {
+  const { error } = await supabase
+    .from('academy_config')
+    .upsert(
+      {
+        id: 1,
+        knowledge_domains: config.knowledgeDomains ?? [],
+        certification_dimensions: config.certificationDimensions ?? [],
+      },
+      { onConflict: 'id' }
+    )
+  if (error) throw error
+}
+
 // ---------- 资讯 ----------
 function newsFromRow(r: Record<string, unknown>): AdminNews {
   return {
@@ -532,5 +643,60 @@ export async function saveRoadshowConfig(config: HomeRoadshowConfig): Promise<vo
   const { error } = await supabase
     .from('home_roadshow_config')
     .upsert({ id: 1, title: config.title ?? '路演日历', path: config.path ?? '/roadshow', enabled: config.enabled !== false }, { onConflict: 'id' })
+  if (error) throw error
+}
+
+// ---------- 路演场次 (roadshow_events) ----------
+function roadshowEventFromRow(r: Record<string, unknown>): AdminRoadshowEvent {
+  const t = r.start_time
+  const startStr = typeof t === 'string' ? t.slice(0, 19).replace('T', ' ') : t instanceof Date ? t.toISOString().slice(0, 19).replace('T', ' ') : ''
+  return {
+    id: Number(r.id),
+    title: String(r.title ?? ''),
+    startTime: startStr,
+    durationMinutes: Number(r.duration_minutes ?? 60),
+    status: (r.status as RoadshowStatus) || '预热中',
+    externalUrl: r.external_url != null ? String(r.external_url) : null,
+    h5Config: (r.h5_config as Record<string, unknown>) ?? undefined,
+    reservationEnabled: Boolean(r.reservation_enabled),
+    reservationBaseCount: Number(r.reservation_base_count ?? 0),
+    reservationRealCount: Number(r.reservation_real_count ?? 0),
+    replayUrl: r.replay_url != null ? String(r.replay_url) : null,
+    materials: Array.isArray(r.materials) ? r.materials : [],
+  }
+}
+
+export async function fetchRoadshowEvents(): Promise<AdminRoadshowEvent[]> {
+  const { data, error } = await supabase.from('roadshow_events').select('*').order('start_time', { ascending: false })
+  if (error) throw error
+  return (data ?? []).map(roadshowEventFromRow)
+}
+
+export async function saveRoadshowEvent(ev: AdminRoadshowEvent): Promise<void> {
+  const startIso = ev.startTime.trim().replace(' ', 'T').slice(0, 19)
+  const row = {
+    title: ev.title,
+    start_time: startIso + (startIso.length <= 16 ? ':00' : ''),
+    duration_minutes: ev.durationMinutes,
+    status: ev.status,
+    external_url: ev.externalUrl ?? null,
+    h5_config: ev.h5Config ?? {},
+    reservation_enabled: ev.reservationEnabled,
+    reservation_base_count: ev.reservationBaseCount,
+    reservation_real_count: ev.reservationRealCount,
+    replay_url: ev.replayUrl ?? null,
+    materials: ev.materials ?? [],
+  }
+  if (ev.id && ev.id > 0) {
+    const { error } = await supabase.from('roadshow_events').update(row).eq('id', ev.id)
+    if (error) throw error
+  } else {
+    const { error } = await supabase.from('roadshow_events').insert(row)
+    if (error) throw error
+  }
+}
+
+export async function deleteRoadshowEvent(id: number): Promise<void> {
+  const { error } = await supabase.from('roadshow_events').delete().eq('id', id)
   if (error) throw error
 }

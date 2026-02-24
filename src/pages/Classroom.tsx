@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchCoursesForApp, type Course } from '../lib/publicApi'
+import {
+  fetchCoursesForApp,
+  getClassroomConfigForApp,
+  getInstructorsForApp,
+  type Course,
+} from '../lib/publicApi'
 
 export default function Classroom() {
   const navigate = useNavigate()
+  const [config, setConfig] = useState<{ title: string; categoryTabs: string[] } | null>(null)
   const [selectedCat, setSelectedCat] = useState('全部')
   const [courses, setCourses] = useState<Course[]>([])
+  const [instructors, setInstructors] = useState<{ id: number; name: string; title: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -13,9 +20,13 @@ export default function Classroom() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    fetchCoursesForApp()
-      .then((data) => {
-        if (!cancelled) setCourses(data)
+    Promise.all([fetchCoursesForApp(), getClassroomConfigForApp(), getInstructorsForApp()])
+      .then(([coursesData, cfg, inst]) => {
+        if (!cancelled) {
+          setCourses(coursesData)
+          setConfig(cfg)
+          setInstructors(inst)
+        }
       })
       .catch((e) => {
         if (!cancelled) setError(e?.message ?? '加载失败')
@@ -26,12 +37,23 @@ export default function Classroom() {
     return () => { cancelled = true }
   }, [])
 
+  const categoryTabs = config?.categoryTabs?.length ? ['全部', ...config.categoryTabs] : ['全部', '入门', '进阶', '高级', '视频', '图文']
   const filteredCourses =
     selectedCat === '全部'
       ? courses
-      : courses.filter((c) => c.tag === selectedCat || c.type === selectedCat)
+      : courses.filter(
+          (c) =>
+            c.tag === selectedCat ||
+            c.type === selectedCat ||
+            c.knowledgeDomain === selectedCat ||
+            c.certificationDimension === selectedCat
+        )
 
-  const categories = ['全部', '入门', '进阶', '高级', '视频', '图文']
+  const getInstructorName = (instructorId: number | null | undefined) => {
+    if (instructorId == null) return ''
+    const i = instructors.find((x) => x.id === instructorId)
+    return i ? i.name : ''
+  }
 
   if (error) {
     return (
@@ -43,9 +65,12 @@ export default function Classroom() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
+      {config?.title && (
+        <h2 className="font-bold text-[var(--owl-text)] mb-4">{config.title}</h2>
+      )}
       <section className="mb-6">
         <div className="flex flex-wrap gap-2">
-          {categories.map((cat) => (
+          {categoryTabs.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCat(cat)}
@@ -68,29 +93,52 @@ export default function Classroom() {
         ) : filteredCourses.length === 0 ? (
           <p className="text-[var(--owl-text-muted)]">暂无课程</p>
         ) : (
-          filteredCourses.map((course) => (
-            <div
-              key={course.id}
-              onClick={() => navigate(`/classroom/course/${course.id}`)}
-              className="bg-white rounded-2xl p-4 shadow-sm flex gap-4 hover:shadow-md transition-shadow cursor-pointer"
-            >
-              <div className="w-20 h-20 flex-shrink-0 bg-gradient-to-br from-[var(--owl-primary)] to-[var(--owl-secondary)] rounded-xl flex items-center justify-center text-4xl">
-                {course.thumbnail}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredCourses.map((course) => (
+              <div
+                key={course.id}
+                onClick={() => navigate(`/classroom/course/${course.id}`)}
+                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              >
+                <div className="aspect-video bg-[var(--owl-primary)]/5 flex items-center justify-center overflow-hidden">
+                  {course.coverUrl ? (
+                    <img src={course.coverUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-5xl">{course.thumbnail || '📖'}</span>
+                  )}
+                </div>
+                <div className="p-4">
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {course.difficulty && (
+                      <span className="inline-block px-2 py-0.5 bg-[var(--owl-primary)]/10 text-[var(--owl-primary)] text-xs rounded">
+                        {course.difficulty}
+                      </span>
+                    )}
+                    {course.knowledgeDomain && (
+                      <span className="inline-block px-2 py-0.5 bg-gray-100 text-[var(--owl-text-muted)] text-xs rounded">
+                        {course.knowledgeDomain}
+                      </span>
+                    )}
+                    {course.certificationDimension && (
+                      <span className="inline-block px-2 py-0.5 bg-[var(--owl-accent)]/20 text-[var(--owl-accent)] text-xs rounded">
+                        {course.certificationDimension}
+                      </span>
+                    )}
+                    {!course.difficulty && !course.knowledgeDomain && !course.certificationDimension && course.tag && (
+                      <span className="inline-block px-2 py-0.5 bg-[var(--owl-accent)]/20 text-[var(--owl-accent)] text-xs rounded">
+                        {course.tag}
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="font-medium text-[var(--owl-text)] line-clamp-2 mb-1">{course.title}</h4>
+                  <p className="text-xs text-[var(--owl-text-muted)]">
+                    {getInstructorName(course.instructorId) && `${getInstructorName(course.instructorId)} · `}
+                    {course.type} · {course.duration}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <span className="inline-block px-2 py-0.5 bg-[var(--owl-accent)]/20 text-[var(--owl-accent)] text-xs rounded mb-2">
-                  {course.tag}
-                </span>
-                <h4 className="font-medium text-[var(--owl-text)] line-clamp-2">{course.title}</h4>
-                <p className="text-xs text-[var(--owl-text-muted)] mt-1">
-                  {course.type} · {course.duration}
-                </p>
-              </div>
-              <div className="flex items-center">
-                <span className="text-[var(--owl-primary)] text-2xl">›</span>
-              </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </section>
 

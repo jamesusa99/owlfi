@@ -1,34 +1,48 @@
 import { useState, useEffect } from 'react'
-import type { AdminCourse, AdminLesson } from '../lib/adminDb'
-import { fetchCourses, saveCourse, deleteCourse, nextLessonId } from '../lib/adminDb'
+import type { AdminCourse, AdminLesson, AdminInstructor, AdminCourseSeries, AcademyConfig } from '../lib/adminDb'
+import { fetchCourses, saveCourse, deleteCourse, nextLessonId, fetchInstructors, fetchCourseSeries, fetchAcademyConfig } from '../lib/adminDb'
 import { getErrorMessage } from './utils'
 import { FormLabel } from './AdminFormLabel'
 import AdminConfirmModal from './AdminConfirmModal'
 
+const defaultCourse = (): AdminCourse => ({
+  id: 0,
+  title: '',
+  type: '视频',
+  duration: '',
+  tag: '入门',
+  thumbnail: '📖',
+  desc: '',
+  lessons: [{ id: 1, title: '', content: '' }],
+  instructorId: null,
+  coverUrl: null,
+  knowledgeDomain: '',
+  certificationDimension: '',
+  seriesId: null,
+  difficulty: '初级',
+  pdfUrl: null,
+  visibility: '全部',
+})
+
 function CourseForm({
   course,
+  instructors,
+  series,
+  academyConfig,
   onSave,
   onCancel,
   onValidationError,
 }: {
   course: AdminCourse | null
+  instructors: AdminInstructor[]
+  series: AdminCourseSeries[]
+  academyConfig: AcademyConfig
   onSave: (c: AdminCourse) => void
   onCancel: () => void
   onValidationError: (msg: string) => void
 }) {
   const isEdit = !!course
-  const [form, setForm] = useState<AdminCourse>(
-    course ?? {
-      id: 0,
-      title: '',
-      type: '视频',
-      duration: '',
-      tag: '入门',
-      thumbnail: '📖',
-      desc: '',
-      lessons: [{ id: 1, title: '', content: '' }],
-    }
-  )
+  const [form, setForm] = useState<AdminCourse>(course ?? defaultCourse())
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,6 +111,116 @@ function CourseForm({
               placeholder="请输入课程名称"
             />
           </div>
+          <div>
+            <FormLabel label="封面图" required={false} hint="16:9 图片链接" />
+            <input
+              type="url"
+              value={form.coverUrl ?? ''}
+              onChange={(e) => setForm({ ...form, coverUrl: e.target.value.trim() || null })}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg font-mono text-sm"
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <FormLabel label="讲师" required={false} hint="关联讲师库" />
+            <select
+              value={form.instructorId ?? ''}
+              onChange={(e) => setForm({ ...form, instructorId: e.target.value ? Number(e.target.value) : null })}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+            >
+              <option value="">— 不选 —</option>
+              {instructors.map((i) => (
+                <option key={i.id} value={i.id}>{i.name} {i.title ? `（${i.title}）` : ''}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <FormLabel label="课程简介" required={false} />
+            <textarea
+              value={form.desc}
+              onChange={(e) => setForm({ ...form, desc: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg min-h-[80px]"
+              placeholder="选填"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <FormLabel label="难度等级" required={false} hint="初/中/高级" />
+              <select
+                value={form.difficulty ?? '初级'}
+                onChange={(e) => setForm({ ...form, difficulty: e.target.value as AdminCourse['difficulty'] })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+              >
+                <option value="初级">初级</option>
+                <option value="中级">中级</option>
+                <option value="高级">高级</option>
+              </select>
+            </div>
+            <div>
+              <FormLabel label="知识领域" required={false} hint="维度一" />
+              <select
+                value={form.knowledgeDomain ?? ''}
+                onChange={(e) => setForm({ ...form, knowledgeDomain: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+              >
+                <option value="">— 不选 —</option>
+                {academyConfig.knowledgeDomains.map((k) => (
+                  <option key={k} value={k}>{k}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <FormLabel label="认证体系" required={false} hint="维度二" />
+              <select
+                value={form.certificationDimension ?? ''}
+                onChange={(e) => setForm({ ...form, certificationDimension: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+              >
+                <option value="">— 不选 —</option>
+                {academyConfig.certificationDimensions.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <FormLabel label="系列课" required={false} hint="归属系列" />
+              <select
+                value={form.seriesId ?? ''}
+                onChange={(e) => setForm({ ...form, seriesId: e.target.value ? Number(e.target.value) : null })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+              >
+                <option value="">— 不选 —</option>
+                {series.map((s) => (
+                  <option key={s.id} value={s.id}>{s.title}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div>
+            <FormLabel label="PDF讲义" required={false} hint="下载链接" />
+            <input
+              type="url"
+              value={form.pdfUrl ?? ''}
+              onChange={(e) => setForm({ ...form, pdfUrl: e.target.value.trim() || null })}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg font-mono text-sm"
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <FormLabel label="可见性" required={false} hint="试听/会员/白名单" />
+            <select
+              value={form.visibility ?? '全部'}
+              onChange={(e) => setForm({ ...form, visibility: e.target.value as AdminCourse['visibility'] })}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+            >
+              <option value="全部">全部</option>
+              <option value="试听">试听</option>
+              <option value="会员">会员</option>
+              <option value="白名单">白名单</option>
+            </select>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <FormLabel label="时长" required={false} hint="如 15分钟" />
@@ -139,15 +263,6 @@ function CourseForm({
               onChange={(e) => setForm({ ...form, videoBvid: e.target.value || undefined })}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg"
               placeholder="BV16s4y1p7vh"
-            />
-          </div>
-          <div>
-            <FormLabel label="简介" required={false} hint="选填" />
-            <textarea
-              value={form.desc}
-              onChange={(e) => setForm({ ...form, desc: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg min-h-[80px]"
-              placeholder="选填"
             />
           </div>
           <div>
@@ -202,6 +317,9 @@ function CourseForm({
 
 export default function AdminCourses() {
   const [courses, setCourses] = useState<AdminCourse[]>([])
+  const [instructors, setInstructors] = useState<AdminInstructor[]>([])
+  const [series, setSeries] = useState<AdminCourseSeries[]>([])
+  const [academyConfig, setAcademyConfig] = useState<AcademyConfig>({ knowledgeDomains: [], certificationDimensions: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -212,8 +330,16 @@ export default function AdminCourses() {
     setLoading(true)
     setError(null)
     try {
-      const data = await fetchCourses()
-      setCourses(data)
+      const [coursesData, inst, ser, ac] = await Promise.all([
+        fetchCourses(),
+        fetchInstructors(),
+        fetchCourseSeries(),
+        fetchAcademyConfig(),
+      ])
+      setCourses(coursesData)
+      setInstructors(inst)
+      setSeries(ser)
+      setAcademyConfig(ac)
     } catch (e) {
       setError(getErrorMessage(e, '加载失败'))
     } finally {
@@ -296,8 +422,28 @@ export default function AdminCourses() {
           <div className="bg-white rounded-xl px-6 py-4">保存中...</div>
         </div>
       )}
-      {formCourse && formCourse !== 'add' && <CourseForm course={formCourse} onSave={handleSave} onCancel={() => setFormCourse(null)} onValidationError={setError} />}
-      {formCourse === 'add' && <CourseForm course={null} onSave={handleSave} onCancel={() => setFormCourse(null)} onValidationError={setError} />}
+      {formCourse && formCourse !== 'add' && (
+        <CourseForm
+          course={formCourse}
+          instructors={instructors}
+          series={series}
+          academyConfig={academyConfig}
+          onSave={handleSave}
+          onCancel={() => setFormCourse(null)}
+          onValidationError={setError}
+        />
+      )}
+      {formCourse === 'add' && (
+        <CourseForm
+          course={null}
+          instructors={instructors}
+          series={series}
+          academyConfig={academyConfig}
+          onSave={handleSave}
+          onCancel={() => setFormCourse(null)}
+          onValidationError={setError}
+        />
+      )}
       {deleteId !== null && (
         <AdminConfirmModal
           title="确定要删除该课程吗？此操作不可恢复。"

@@ -11,6 +11,10 @@ import {
   fetchHomeServices,
   fetchClassroomConfig,
   fetchRoadshowConfig,
+  fetchRoadshowEvents,
+  fetchInstructors,
+  fetchCourseSeries,
+  fetchAcademyConfig,
   type AdminCourse,
   type AdminLesson,
 } from './adminDb'
@@ -121,7 +125,67 @@ export async function getClassroomConfigForApp(): Promise<{ title: string; categ
   return fetchClassroomConfig()
 }
 
+/** 讲师列表（用于课程卡片/详情展示讲师名） */
+export async function getInstructorsForApp(): Promise<{ id: number; name: string; title: string; avatarUrl?: string | null }[]> {
+  const list = await fetchInstructors()
+  return list.map((i) => ({ id: i.id, name: i.name, title: i.title, avatarUrl: i.avatarUrl }))
+}
+
+/** 系列课列表（用于课程归属展示） */
+export async function getCourseSeriesForApp(): Promise<{ id: number; title: string }[]> {
+  const list = await fetchCourseSeries()
+  return list.map((s) => ({ id: s.id, title: s.title }))
+}
+
+/** 学院分类配置：知识领域、认证体系选项（用于筛选/标签） */
+export async function getAcademyConfigForApp(): Promise<{ knowledgeDomains: string[]; certificationDimensions: string[] }> {
+  return fetchAcademyConfig()
+}
+
 /** 首页路演日历区块配置 */
 export async function getRoadshowConfigForApp(): Promise<{ title: string; path: string; enabled: boolean }> {
   return fetchRoadshowConfig()
+}
+
+/** 路演场次列表（日历页用） */
+export interface RoadshowEventForApp {
+  id: number
+  title: string
+  startTime: string
+  date: string
+  time: string
+  durationMinutes: number
+  status: string
+  reservationEnabled: boolean
+  reservationBaseCount: number
+  reservationRealCount: number
+  replayUrl?: string | null
+  externalUrl?: string | null
+}
+
+export async function getRoadshowEventsForApp(): Promise<RoadshowEventForApp[]> {
+  const list = await fetchRoadshowEvents()
+  return list.map((e) => {
+    const [date = '', time = ''] = e.startTime.split(' ')
+    return {
+      id: e.id,
+      title: e.title,
+      startTime: e.startTime,
+      date: date.slice(0, 10),
+      time: time.slice(0, 5),
+      durationMinutes: e.durationMinutes,
+      status: e.status,
+      reservationEnabled: e.reservationEnabled,
+      reservationBaseCount: e.reservationBaseCount,
+      reservationRealCount: e.reservationRealCount,
+      replayUrl: e.replayUrl,
+      externalUrl: e.externalUrl,
+    }
+  })
+}
+
+/** 单场路演（详情页用） */
+export async function getRoadshowEventForApp(id: number): Promise<RoadshowEventForApp | null> {
+  const list = await getRoadshowEventsForApp()
+  return list.find((e) => e.id === id) ?? null
 }

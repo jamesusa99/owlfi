@@ -61,7 +61,7 @@ export default function Home() {
           </div>
           {!isAuthenticated && (
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/profile')}
               className="px-5 py-2 bg-[var(--owl-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 shrink-0"
             >
               登录

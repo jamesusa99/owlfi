@@ -6,6 +6,7 @@ import {
   fetchCourses,
   fetchNews,
   fetchForumPosts,
+  fetchAnnouncement,
   type AdminCourse,
   type AdminLesson,
 } from './adminDb'
@@ -78,4 +79,9 @@ export async function fetchForumPostsForApp(): Promise<ForumPostItem[]> {
 export async function getForumPostForApp(id: number): Promise<ForumPostItem | null> {
   const list = await fetchForumPostsForApp()
   return list.find((p) => p.id === id) ?? null
+}
+
+/** 系统公告（首页展示，后台在「系统设置」编辑） */
+export async function getAnnouncementForApp(): Promise<string> {
+  return fetchAnnouncement()
 }

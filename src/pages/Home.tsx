@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Logo from '../components/Logo'
-import { fetchNewsForApp, fetchCoursesForApp } from '../lib/publicApi'
+import { fetchNewsForApp, fetchCoursesForApp, getAnnouncementForApp } from '../lib/publicApi'
 
 const services = [
   { label: '组合管理', icon: '📁', path: '/portfolio' },
@@ -14,6 +14,7 @@ const services = [
   { label: '基金画像', icon: '📈', path: '/research/fund-profile' },
   { label: '路演日历', icon: '📅', path: '/roadshow' },
   { label: '精选课堂', icon: '📚', path: '/classroom' },
+  { label: '市场资讯', icon: '📰', path: '/news' },
   { label: '更多', icon: '⋯', path: '/classroom' },
 ]
 
@@ -25,16 +26,18 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('推荐')
   const [hotArticles, setHotArticles] = useState<{ id: number; title: string; publishTime: string }[]>([])
   const [courses, setCourses] = useState<{ id: number; title: string; path: string }[]>([])
+  const [announcement, setAnnouncement] = useState('')
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([fetchNewsForApp(), fetchCoursesForApp()])
-      .then(([news, courseList]) => {
+    Promise.all([fetchNewsForApp(), fetchCoursesForApp(), getAnnouncementForApp()])
+      .then(([news, courseList, announcementContent]) => {
         if (cancelled) return
         setHotArticles(news.slice(0, 5).map((n) => ({ id: n.id, title: n.title, publishTime: n.publishTime })))
         setCourses(
           courseList.slice(0, 5).map((c) => ({ id: c.id, title: c.title, path: `/classroom/course/${c.id}` }))
         )
+        setAnnouncement((announcementContent || '').trim())
       })
       .catch(() => {})
     return () => { cancelled = true }
@@ -75,6 +78,19 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* 系统公告 */}
+      {announcement && (
+        <section className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl shrink-0" aria-hidden>📢</span>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-semibold text-amber-800 mb-1">系统公告</h3>
+              <p className="text-sm text-[var(--owl-text)] whitespace-pre-line leading-relaxed">{announcement}</p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 服务入口网格 */}
       <section className="bg-white rounded-2xl p-5 shadow-sm mb-6">

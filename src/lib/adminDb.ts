@@ -327,3 +327,15 @@ export async function deleteForumPost(id: number): Promise<void> {
   const { error } = await supabase.from('forum_posts').delete().eq('id', id)
   if (error) throw error
 }
+
+// ---------- 系统公告 ----------
+export async function fetchAnnouncement(): Promise<string> {
+  const { data, error } = await supabase.from('system_announcement').select('content').eq('id', 1).single()
+  if (error) return ''
+  return String(data?.content ?? '')
+}
+
+export async function saveAnnouncement(content: string): Promise<void> {
+  const { error } = await supabase.from('system_announcement').upsert({ id: 1, content: content ?? '' }, { onConflict: 'id' })
+  if (error) throw error
+}

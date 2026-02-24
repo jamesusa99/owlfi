@@ -12,6 +12,7 @@ import {
   fetchClassroomConfig,
   fetchRoadshowConfig,
   fetchRoadshowEvents,
+  computeRoadshowDisplayStatus,
   fetchInstructors,
   fetchCourseSeries,
   fetchAcademyConfig,
@@ -147,7 +148,7 @@ export async function getRoadshowConfigForApp(): Promise<{ title: string; path: 
   return fetchRoadshowConfig()
 }
 
-/** 路演场次列表（日历页用） */
+/** 路演场次列表（日历页用）；status 为根据系统时间自动计算：预热中/直播中/回放中/已结束 */
 export interface RoadshowEventForApp {
   id: number
   title: string
@@ -161,12 +162,14 @@ export interface RoadshowEventForApp {
   reservationRealCount: number
   replayUrl?: string | null
   externalUrl?: string | null
+  materials?: { type: string; name: string; code?: string; url?: string }[]
 }
 
 export async function getRoadshowEventsForApp(): Promise<RoadshowEventForApp[]> {
   const list = await fetchRoadshowEvents()
   return list.map((e) => {
     const [date = '', time = ''] = e.startTime.split(' ')
+    const status = computeRoadshowDisplayStatus(e)
     return {
       id: e.id,
       title: e.title,
@@ -174,12 +177,13 @@ export async function getRoadshowEventsForApp(): Promise<RoadshowEventForApp[]> 
       date: date.slice(0, 10),
       time: time.slice(0, 5),
       durationMinutes: e.durationMinutes,
-      status: e.status,
+      status,
       reservationEnabled: e.reservationEnabled,
       reservationBaseCount: e.reservationBaseCount,
       reservationRealCount: e.reservationRealCount,
       replayUrl: e.replayUrl,
       externalUrl: e.externalUrl,
+      materials: e.materials,
     }
   })
 }

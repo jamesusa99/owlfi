@@ -59,6 +59,14 @@ export interface AdminCourseSeries {
 
 export type RoadshowStatus = '预热中' | '直播中' | '回放中' | '已结束'
 
+/** 路演资料项：基金或研报 */
+export interface RoadshowMaterial {
+  type: 'fund' | 'report'
+  name: string
+  code?: string
+  url?: string
+}
+
 export interface AdminRoadshowEvent {
   id: number
   title: string
@@ -71,7 +79,7 @@ export interface AdminRoadshowEvent {
   reservationBaseCount: number
   reservationRealCount: number
   replayUrl?: string | null
-  materials?: unknown[]
+  materials?: RoadshowMaterial[]
 }
 
 export interface AdminNews {
@@ -662,7 +670,14 @@ function roadshowEventFromRow(r: Record<string, unknown>): AdminRoadshowEvent {
     reservationBaseCount: Number(r.reservation_base_count ?? 0),
     reservationRealCount: Number(r.reservation_real_count ?? 0),
     replayUrl: r.replay_url != null ? String(r.replay_url) : null,
-    materials: Array.isArray(r.materials) ? r.materials : [],
+    materials: Array.isArray(r.materials)
+      ? (r.materials as RoadshowMaterial[]).map((m) => ({
+          type: (m?.type === 'fund' || m?.type === 'report' ? m.type : 'report') as 'fund' | 'report',
+          name: String(m?.name ?? ''),
+          code: m?.code != null ? String(m.code) : undefined,
+          url: m?.url != null ? String(m.url) : undefined,
+        }))
+      : [],
   }
 }
 
@@ -699,4 +714,71 @@ export async function saveRoadshowEvent(ev: AdminRoadshowEvent): Promise<void> {
 export async function deleteRoadshowEvent(id: number): Promise<void> {
   const { error } = await supabase.from('roadshow_events').delete().eq('id', id)
   if (error) throw error
+}
+
+/** 根据系统时间计算展示状态：未开始→预热中，进行中→直播中，已结束且有回放→回放中，否则已结束 */
+export function computeRoadshowDisplayStatus(ev: {
+  startTime: string
+  durationMinutes: number
+  replayUrl?: string | null
+}): RoadshowStatus {
+  const start = parseRoadshowStartTime(ev.startTime)
+  if (!start) return '预热中'
+  const end = new Date(start.getTime() + ev.durationMinutes * 60 * 1000)
+  const now = new Date()
+  if (now < start) return '预热中'
+  if (now <= end) return '直播中'
+  return ev.replayUrl ? '回放中' : '已结束'
+}
+
+function parseRoadshowStartTime(s: string): Date | null {
+  if (!s || typeof s !== 'string') return null
+  const normalized = s.trim().replace(' ', 'T').slice(0, 19)
+  const d = new Date(normalized)
+  return isNaN(d.getTime()) ? null : d
+}
+
+/** 检测两场是否时间冲突（同一天且时间段重叠） */
+export function roadshowEventsConflict(
+  a: { startTime: string; durationMinutes: number },
+  b: { startTime: string; durationMinutes: number }
+): boolean {
+  const startA = parseRoadshowStartTime(a.startTime)
+  const startB = parseRoadshowStartTime(b.startTime)
+  if (!startA || !startB) return false
+  const dateStr = (d: Date) => d.toISOString().slice(0, 10)
+  if (dateStr(startA) !== dateStr(startB)) return false
+  const endA = startA.getTime() + a.durationMinutes * 60 * 1000
+  const endB = startB.getTime() + b.durationMinutes * 60 * 1000
+  return startA.getTime() < endB && endA > startB.getTime()
+}
+
+/** 将路演转为投顾学院课程（标题、回放/外链作为视频素材） */
+export async function createCourseFromRoadshowEvent(ev: AdminRoadshowEvent): Promise<number> {
+  const videoUrl = ev.replayUrl || ev.externalUrl || ''
+  const newCourse: AdminCourse = {
+    id: 0,
+    title: ev.title,
+    type: '视频',
+    duration: `${ev.durationMinutes}分钟`,
+    tag: '入门',
+    thumbnail: '📖',
+    desc: `由路演「${ev.title}」转为课程。`,
+    lessons: [{ id: 1, title: '回放', content: '', videoBvid: undefined }],
+    visibility: '全部',
+  }
+  if (videoUrl) {
+    try {
+      const bvMatch = videoUrl.match(/(?:bv|BV)([A-Za-z0-9]+)/i)
+      if (bvMatch) newCourse.lessons[0].videoBvid = (bvMatch[0].startsWith('bv') ? 'BV' : '') + bvMatch[1]
+    } catch {
+      // 非 B 站链接时仅保留 desc 中的说明，课程可后续编辑补充视频
+    }
+  }
+  await saveCourse(newCourse)
+  const list = await fetchCourses()
+  const created = list
+    .filter((c) => c.title === ev.title && c.desc?.includes('由路演'))
+    .sort((a, b) => b.id - a.id)[0]
+  return created?.id ?? 0
 }

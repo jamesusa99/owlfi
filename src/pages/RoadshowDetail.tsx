@@ -57,10 +57,28 @@ export default function RoadshowDetail() {
           href={linkUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full py-3 bg-[var(--owl-primary)] text-white rounded-xl text-center"
+          className="block w-full py-3 bg-[var(--owl-primary)] text-white rounded-xl text-center mb-4"
         >
           {event.replayUrl ? '观看回放' : '进入直播/回看'}
         </a>
+      )}
+      {event.materials && event.materials.length > 0 && (
+        <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
+          <h3 className="font-medium text-[var(--owl-text)] mb-3">路演资料</h3>
+          <ul className="space-y-2">
+            {event.materials.map((m, i) => (
+              <li key={i}>
+                {m.url ? (
+                  <a href={m.url} target="_blank" rel="noopener noreferrer" className="text-[var(--owl-primary)] text-sm">
+                    {m.type === 'fund' ? '基金' : '研报'}：{m.name}{m.code ? `（${m.code}）` : ''}
+                  </a>
+                ) : (
+                  <span className="text-sm text-[var(--owl-text-muted)]">{m.type === 'fund' ? '基金' : '研报'}：{m.name}{m.code ? `（${m.code}）` : ''}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       <button
         onClick={() => navigate('/roadshow')}

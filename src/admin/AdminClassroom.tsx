@@ -1,17 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import type { HomeClassroomConfig, AcademyConfig } from '../lib/adminDb'
-import {
-  fetchClassroomConfig,
-  saveClassroomConfig,
-  fetchAcademyConfig,
-  saveAcademyConfig,
-} from '../lib/adminDb'
+import type { AcademyConfig } from '../lib/adminDb'
+import { fetchAcademyConfig, saveAcademyConfig } from '../lib/adminDb'
 import { getErrorMessage } from './utils'
 
 export default function AdminClassroom() {
-  const [classroom, setClassroom] = useState<HomeClassroomConfig>({ title: '投顾学院', categoryTabs: [] })
-  const [classroomTabsStr, setClassroomTabsStr] = useState('')
   const [academy, setAcademy] = useState<AcademyConfig>({ knowledgeDomains: [], certificationDimensions: [] })
   const [knowledgeStr, setKnowledgeStr] = useState('')
   const [certificationStr, setCertificationStr] = useState('')
@@ -19,9 +12,6 @@ export default function AdminClassroom() {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (classroom.categoryTabs.length) setClassroomTabsStr(classroom.categoryTabs.join('\n'))
-  }, [classroom.categoryTabs])
   useEffect(() => {
     setKnowledgeStr(academy.knowledgeDomains.join('\n'))
   }, [academy.knowledgeDomains])
@@ -33,8 +23,7 @@ export default function AdminClassroom() {
     setLoading(true)
     setError(null)
     try {
-      const [c, a] = await Promise.all([fetchClassroomConfig(), fetchAcademyConfig()])
-      setClassroom(c)
+      const a = await fetchAcademyConfig()
       setAcademy(a)
     } catch (e) {
       setError(getErrorMessage(e, '加载失败'))
@@ -46,20 +35,6 @@ export default function AdminClassroom() {
   useEffect(() => {
     load()
   }, [])
-
-  const handleSaveClassroom = async () => {
-    setSaving('classroom')
-    setError(null)
-    try {
-      const tabs = classroomTabsStr.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean)
-      await saveClassroomConfig({ title: classroom.title, categoryTabs: tabs })
-      setClassroom((prev) => ({ ...prev, categoryTabs: tabs }))
-    } catch (e) {
-      setError(getErrorMessage(e, '保存失败'))
-    } finally {
-      setSaving(null)
-    }
-  }
 
   const handleSaveAcademy = async () => {
     setSaving('academy')
@@ -96,35 +71,6 @@ export default function AdminClassroom() {
           📚 课程管理
         </Link>
       </div>
-
-      {/* 首页区块：标题与分类标签 */}
-      <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
-        <h3 className="font-medium text-[#1a2b3c] mb-2">首页区块配置</h3>
-        <p className="text-xs text-[#6b7c8d] mb-4">首页「投顾学院」标题及分类标签（每行一个或逗号分隔），用于首页展示。</p>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm text-[#6b7c8d] mb-1">区块标题</label>
-            <input
-              type="text"
-              value={classroom.title}
-              onChange={(e) => setClassroom((c) => ({ ...c, title: e.target.value }))}
-              className="w-full max-w-xs px-3 py-2 border rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-[#6b7c8d] mb-1">分类标签</label>
-            <textarea
-              value={classroomTabsStr}
-              onChange={(e) => setClassroomTabsStr(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg min-h-[80px]"
-              placeholder="基金经理精选&#10;基金比较研究"
-            />
-          </div>
-          <button onClick={handleSaveClassroom} disabled={saving === 'classroom'} className="px-4 py-2 bg-[#1e3a5f] text-white rounded-lg text-sm">
-            {saving === 'classroom' ? '保存中...' : '保存'}
-          </button>
-        </div>
-      </section>
 
       {/* 分类管理：知识领域、认证体系（课程关联用） */}
       <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">

@@ -66,7 +66,7 @@ export default function Header() {
   const location = useLocation()
   const navigate = useNavigate()
   const title = titles[location.pathname] ?? matchTitle(location.pathname) ?? '猫头鹰基金研究院'
-  const mainPaths = ['/', '/classroom', '/portfolio', '/tools', '/profile']
+  const mainPaths = ['/', '/forum', '/classroom', '/portfolio', '/tools', '/profile']
   const isSubPage = !mainPaths.includes(location.pathname)
 
   return (

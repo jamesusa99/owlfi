@@ -121,8 +121,13 @@ export async function getHomeServicesForApp(): Promise<HomeServiceForApp[]> {
   return fetchHomeServices()
 }
 
-/** 首页投顾学院区块配置 */
-export async function getClassroomConfigForApp(): Promise<{ title: string; categoryTabs: string[] }> {
+/** 投顾学院页面配置（轮播、分类等） */
+export async function getClassroomConfigForApp(): Promise<{
+  title: string
+  categoryTabs: string[]
+  heroSeriesId?: number | null
+  heroTitle?: string
+}> {
   return fetchClassroomConfig()
 }
 

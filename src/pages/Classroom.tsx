@@ -28,7 +28,12 @@ function getInstructorName(
 
 export default function Classroom() {
   const navigate = useNavigate()
-  const [config, setConfig] = useState<{ title: string; categoryTabs: string[] } | null>(null)
+  const [config, setConfig] = useState<{
+    title: string
+    categoryTabs: string[]
+    heroSeriesId?: number | null
+    heroTitle?: string
+  } | null>(null)
   const [courses, setCourses] = useState<Course[]>([])
   const [instructors, setInstructors] = useState<{ id: number; name: string; title: string; avatarUrl?: string | null; bio?: string }[]>([])
   const [seriesList, setSeriesList] = useState<{ id: number; title: string; coverUrl?: string | null; desc?: string }[]>([])
@@ -89,7 +94,11 @@ export default function Classroom() {
   }, [courses, selectedCat, searchQuery, instructors])
 
   const displayCourses = showAllCourses ? filteredCourses : filteredCourses.slice(0, 3)
-  const heroSeries = seriesList[0]
+  const heroSeries =
+    config?.heroSeriesId != null
+      ? seriesList.find((s) => s.id === config.heroSeriesId) ?? seriesList[0]
+      : seriesList[0]
+  const heroTitle = config?.heroTitle ?? heroSeries?.title ?? '年度投研课'
 
   if (error) {
     return (
@@ -148,7 +157,7 @@ export default function Classroom() {
             ) : null}
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/40 to-transparent">
               <h2 className="text-xl md:text-2xl font-bold text-white">
-                {heroSeries?.title ?? '年度投研课'}
+                {heroTitle}
               </h2>
             </div>
           </div>

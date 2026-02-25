@@ -618,22 +618,41 @@ export async function deleteHomeService(id: number): Promise<void> {
 export interface HomeClassroomConfig {
   title: string
   categoryTabs: string[]
+  heroSeriesId?: number | null
+  heroTitle?: string
 }
 
 export async function fetchClassroomConfig(): Promise<HomeClassroomConfig> {
   const { data, error } = await supabase.from('home_classroom_config').select('*').eq('id', 1).single()
-  if (error || !data) return { title: '投顾学院', categoryTabs: ['基金经理精选', '基金比较研究', 'ETF策略研究', '绝对收益策略', '基金组合配置'] }
+  if (error || !data) {
+    return {
+      title: '投顾学院',
+      categoryTabs: ['策略', '基金', '客户经营', '资产配置', '合规'],
+      heroTitle: '年度投研课',
+    }
+  }
   const tabs = data.category_tabs
   return {
     title: String(data.title ?? '投顾学院'),
     categoryTabs: Array.isArray(tabs) ? tabs.map(String) : [],
+    heroSeriesId: data.hero_series_id != null ? Number(data.hero_series_id) : null,
+    heroTitle: String(data.hero_title ?? '年度投研课'),
   }
 }
 
 export async function saveClassroomConfig(config: HomeClassroomConfig): Promise<void> {
   const { error } = await supabase
     .from('home_classroom_config')
-    .upsert({ id: 1, title: config.title ?? '投顾学院', category_tabs: config.categoryTabs ?? [] }, { onConflict: 'id' })
+    .upsert(
+      {
+        id: 1,
+        title: config.title ?? '投顾学院',
+        category_tabs: config.categoryTabs ?? [],
+        hero_series_id: config.heroSeriesId ?? null,
+        hero_title: config.heroTitle ?? '年度投研课',
+      },
+      { onConflict: 'id' }
+    )
   if (error) throw error
 }
 

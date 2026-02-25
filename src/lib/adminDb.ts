@@ -804,3 +804,34 @@ export async function createCourseFromRoadshowEvent(ev: AdminRoadshowEvent): Pro
     .sort((a, b) => b.id - a.id)[0]
   return created?.id ?? 0
 }
+
+// ---------- H5 抓取数据 (h5_scraped_data) ----------
+export interface H5ScrapedRow {
+  id: number
+  category: string
+  subCategory: string
+  title: string
+  content: string
+  url?: string
+  metadata: Record<string, unknown>
+  sourcePage: string
+  scrapedAt: string
+}
+
+export async function fetchH5ScrapedData(category?: string): Promise<H5ScrapedRow[]> {
+  let q = supabase.from('h5_scraped_data').select('*').order('scraped_at', { ascending: false })
+  if (category) q = q.eq('category', category)
+  const { data, error } = await q
+  if (error) return []
+  return (data ?? []).map((r) => ({
+    id: Number(r.id),
+    category: String(r.category ?? ''),
+    subCategory: String(r.sub_category ?? ''),
+    title: String(r.title ?? ''),
+    content: String(r.content ?? ''),
+    url: r.url ? String(r.url) : undefined,
+    metadata: (r.metadata as Record<string, unknown>) ?? {},
+    sourcePage: String(r.source_page ?? ''),
+    scrapedAt: r.scraped_at ? new Date(r.scraped_at).toISOString() : '',
+  }))
+}

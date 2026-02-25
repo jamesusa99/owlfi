@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "scrape:h5": "node scripts/scrape-h5.mjs",
+    "scrape:h5:sync": "node scripts/scrape-h5.mjs --sync"
   },
   "overrides": {
     "eslint-plugin-react-hooks": {
@@ -21,6 +23,8 @@
     "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
+    "dotenv": "^16.4.5",
+    "playwright": "^1.49.0",
     "@eslint/js": "^9.39.1",
     "@tailwindcss/vite": "^4.2.1",
     "@types/node": "^24.10.1",

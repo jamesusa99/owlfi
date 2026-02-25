@@ -126,9 +126,9 @@ export default function CourseDetail() {
           href={course.pdfUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="block mb-6 py-3 px-4 bg-gray-100 text-[var(--owl-text)] rounded-xl text-sm font-medium text-center hover:bg-gray-200"
+          className="flex items-center justify-center gap-2 mb-6 py-3 px-4 bg-amber-50 text-amber-800 rounded-xl text-sm font-medium border border-amber-200 hover:bg-amber-100 transition-colors"
         >
-          📄 下载 PDF 讲义
+          📄 讲义同步下载
         </a>
       )}
 
@@ -157,9 +157,9 @@ export default function CourseDetail() {
           const firstId = course.lessons[0]?.id
           if (firstId) navigate(`/classroom/course/${id}/learn/${firstId}`)
         }}
-        className="w-full mt-6 py-4 bg-[var(--owl-primary)] text-white font-medium rounded-xl"
+        className="w-full mt-6 py-4 bg-[var(--owl-accent)] text-[#1a2b3c] font-semibold rounded-xl hover:bg-[#e5b94d] transition-colors"
       >
-        开始学习
+        立即学习
       </button>
     </div>
   )

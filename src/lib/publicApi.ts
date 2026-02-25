@@ -126,16 +126,16 @@ export async function getClassroomConfigForApp(): Promise<{ title: string; categ
   return fetchClassroomConfig()
 }
 
-/** 讲师列表（用于课程卡片/详情展示讲师名） */
-export async function getInstructorsForApp(): Promise<{ id: number; name: string; title: string; avatarUrl?: string | null }[]> {
+/** 讲师列表（用于课程卡片/详情/专家侧边栏） */
+export async function getInstructorsForApp(): Promise<{ id: number; name: string; title: string; avatarUrl?: string | null; bio?: string }[]> {
   const list = await fetchInstructors()
-  return list.map((i) => ({ id: i.id, name: i.name, title: i.title, avatarUrl: i.avatarUrl }))
+  return list.map((i) => ({ id: i.id, name: i.name, title: i.title, avatarUrl: i.avatarUrl, bio: i.bio }))
 }
 
-/** 系列课列表（用于课程归属展示） */
-export async function getCourseSeriesForApp(): Promise<{ id: number; title: string }[]> {
+/** 系列课列表（用于课程归属/Hero 轮播） */
+export async function getCourseSeriesForApp(): Promise<{ id: number; title: string; coverUrl?: string | null; desc?: string }[]> {
   const list = await fetchCourseSeries()
-  return list.map((s) => ({ id: s.id, title: s.title }))
+  return list.map((s) => ({ id: s.id, title: s.title, coverUrl: s.coverUrl, desc: s.desc }))
 }
 
 /** 学院分类配置：知识领域、认证体系选项（用于筛选/标签） */

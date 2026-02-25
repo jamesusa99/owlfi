@@ -7,10 +7,11 @@ const mainPaths = ['/', '/forum', '/classroom', '/portfolio', '/tools', '/profil
 export default function Layout() {
   const location = useLocation()
   const showBottomNav = mainPaths.includes(location.pathname)
+  const isClassroom = location.pathname === '/classroom'
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--owl-bg)] pb-16 md:pb-0">
-      <Header />
+      {!isClassroom && <Header />}
       <main className="flex-1 overflow-auto max-w-7xl w-full mx-auto">
         <Outlet />
       </main>

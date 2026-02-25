@@ -30,7 +30,7 @@ export default function Classroom() {
   const navigate = useNavigate()
   const [config, setConfig] = useState<{ title: string; categoryTabs: string[] } | null>(null)
   const [courses, setCourses] = useState<Course[]>([])
-  const [instructors, setInstructors] = useState<{ id: number; name: string; title: string; avatarUrl?: string | null }[]>([])
+  const [instructors, setInstructors] = useState<{ id: number; name: string; title: string; avatarUrl?: string | null; bio?: string }[]>([])
   const [seriesList, setSeriesList] = useState<{ id: number; title: string; coverUrl?: string | null; desc?: string }[]>([])
   const [selectedCat, setSelectedCat] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -267,9 +267,13 @@ export default function Classroom() {
             <div className="space-y-3">
               {LEADERBOARD.map((item, idx) => (
                 <div key={item.name} className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                    idx === 0 ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600'
-                  }`}>
+                  <span
+                    className={
+                      idx === 0
+                        ? 'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium bg-amber-100 text-amber-800'
+                        : 'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium bg-gray-100 text-gray-600'
+                    }
+                  >
                     {idx + 1}
                   </span>
                   <span className="font-medium text-[#1a2b3c]">{item.name}</span>

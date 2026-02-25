@@ -58,6 +58,20 @@ export default function AdminRoadshow() {
     return map
   }, [events])
 
+  const firstDay = useMemo(() => new Date(calYear, calMonth - 1, 1).getDay(), [calYear, calMonth])
+  const daysInMonth = useMemo(() => new Date(calYear, calMonth, 0).getDate(), [calYear, calMonth])
+  const eventsByDay = useMemo(() => {
+    const map: Record<string, AdminRoadshowEvent[]> = {}
+    events.forEach((ev) => {
+      const [datePart] = ev.startTime.split(' ')
+      if (datePart) {
+        if (!map[datePart]) map[datePart] = []
+        map[datePart].push(ev)
+      }
+    })
+    return map
+  }, [events])
+
   const load = async () => {
     setLoading(true)
     setError(null)
@@ -148,20 +162,6 @@ export default function AdminRoadshow() {
   if (loading) {
     return <div className="p-6 text-[#6b7c8d]">加载中...</div>
   }
-
-  const firstDay = useMemo(() => new Date(calYear, calMonth - 1, 1).getDay(), [calYear, calMonth])
-  const daysInMonth = useMemo(() => new Date(calYear, calMonth, 0).getDate(), [calYear, calMonth])
-  const eventsByDay = useMemo(() => {
-    const map: Record<string, AdminRoadshowEvent[]> = {}
-    events.forEach((ev) => {
-      const [datePart] = ev.startTime.split(' ')
-      if (datePart) {
-        if (!map[datePart]) map[datePart] = []
-        map[datePart].push(ev)
-      }
-    })
-    return map
-  }, [events])
 
   return (
     <div className="p-6">

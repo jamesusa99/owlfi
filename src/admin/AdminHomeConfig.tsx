@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import type { HomeServiceRow, HomeClassroomConfig, HomeRoadshowConfig } from '../lib/adminDb'
+import { Link } from 'react-router-dom'
+import type { HomeServiceRow, HomeClassroomConfig, HomeRoadshowConfig, AcademyConfig } from '../lib/adminDb'
 import {
   fetchHomeServices,
   saveHomeService,
@@ -8,6 +9,8 @@ import {
   saveClassroomConfig,
   fetchRoadshowConfig,
   saveRoadshowConfig,
+  fetchAcademyConfig,
+  saveAcademyConfig,
 } from '../lib/adminDb'
 import { getErrorMessage } from './utils'
 
@@ -18,6 +21,9 @@ export default function AdminHomeConfig() {
   const [classroom, setClassroom] = useState<HomeClassroomConfig>({ title: '投顾学院', categoryTabs: [] })
   const [classroomTabsStr, setClassroomTabsStr] = useState('')
   const [roadshow, setRoadshow] = useState<HomeRoadshowConfig>({ title: '路演日历', path: '/roadshow', enabled: true })
+  const [academy, setAcademy] = useState<AcademyConfig>({ knowledgeDomains: [], certificationDimensions: [] })
+  const [knowledgeStr, setKnowledgeStr] = useState('')
+  const [certificationStr, setCertificationStr] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState<string | null>(null)
@@ -27,15 +33,27 @@ export default function AdminHomeConfig() {
   useEffect(() => {
     if (classroom.categoryTabs.length) setClassroomTabsStr(classroom.categoryTabs.join('\n'))
   }, [classroom.categoryTabs])
+  useEffect(() => {
+    setKnowledgeStr(academy.knowledgeDomains.join('\n'))
+  }, [academy.knowledgeDomains])
+  useEffect(() => {
+    setCertificationStr(academy.certificationDimensions.join('\n'))
+  }, [academy.certificationDimensions])
 
   const load = async () => {
     setLoading(true)
     setError(null)
     try {
-      const [s, c, r] = await Promise.all([fetchHomeServices(), fetchClassroomConfig(), fetchRoadshowConfig()])
+      const [s, c, r, a] = await Promise.all([
+        fetchHomeServices(),
+        fetchClassroomConfig(),
+        fetchRoadshowConfig(),
+        fetchAcademyConfig(),
+      ])
       setServices(s)
       setClassroom(c)
       setRoadshow(r)
+      setAcademy(a)
     } catch (e) {
       setError(getErrorMessage(e, '加载失败'))
     } finally {
@@ -80,6 +98,21 @@ export default function AdminHomeConfig() {
       const tabs = classroomTabsStr.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean)
       await saveClassroomConfig({ title: classroom.title, categoryTabs: tabs })
       setClassroom((prev) => ({ ...prev, categoryTabs: tabs }))
+    } catch (e) {
+      setError(getErrorMessage(e, '保存失败'))
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  const handleSaveAcademy = async () => {
+    setSaving('academy')
+    setError(null)
+    try {
+      const knowledgeDomains = knowledgeStr.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean)
+      const certificationDimensions = certificationStr.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean)
+      await saveAcademyConfig({ knowledgeDomains, certificationDimensions })
+      setAcademy({ knowledgeDomains, certificationDimensions })
     } catch (e) {
       setError(getErrorMessage(e, '保存失败'))
     } finally {
@@ -166,13 +199,18 @@ export default function AdminHomeConfig() {
         </div>
       </section>
 
-      {/* 投顾学院区块（首页展示用） */}
+      {/* 投顾学院（首页展示 + 课程分类） */}
       <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
-        <h3 className="font-medium text-[#1a2b3c] mb-2">投顾学院区块</h3>
-        <p className="text-xs text-[#6b7c8d] mb-4">首页「投顾学院」标题及分类标签，每行一个或逗号分隔。</p>
-        <div className="space-y-3">
+        <h3 className="font-medium text-[#1a2b3c] mb-2">投顾学院</h3>
+        <p className="text-xs text-[#6b7c8d] mb-4">
+          首页区块标题、分类标签；以及课程可选的知识领域、认证体系。课程管理入口：
+          <Link to="/admin/instructors" className="text-[#1e3a5f] ml-1">讲师</Link>
+          <Link to="/admin/series" className="text-[#1e3a5f] ml-2">系列课</Link>
+          <Link to="/admin/courses" className="text-[#1e3a5f] ml-2">课程</Link>
+        </p>
+        <div className="space-y-4">
           <div>
-            <label className="block text-sm text-[#6b7c8d] mb-1">区块标题</label>
+            <label className="block text-sm text-[#6b7c8d] mb-1">区块标题（首页展示）</label>
             <input
               type="text"
               value={classroom.title}
@@ -181,7 +219,7 @@ export default function AdminHomeConfig() {
             />
           </div>
           <div>
-            <label className="block text-sm text-[#6b7c8d] mb-1">分类标签（每行一个或逗号分隔）</label>
+            <label className="block text-sm text-[#6b7c8d] mb-1">首页分类标签（每行一个或逗号分隔）</label>
             <textarea
               value={classroomTabsStr}
               onChange={(e) => setClassroomTabsStr(e.target.value)}
@@ -190,7 +228,29 @@ export default function AdminHomeConfig() {
             />
           </div>
           <button onClick={handleSaveClassroom} disabled={saving === 'classroom'} className="px-4 py-2 bg-[#1e3a5f] text-white rounded-lg text-sm">
-            {saving === 'classroom' ? '保存中...' : '保存'}
+            {saving === 'classroom' ? '保存中...' : '保存区块'}
+          </button>
+          <hr className="border-gray-100" />
+          <div>
+            <label className="block text-sm text-[#6b7c8d] mb-1">知识领域（课程关联用，如：资产配置、定投实战）</label>
+            <textarea
+              value={knowledgeStr}
+              onChange={(e) => setKnowledgeStr(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg min-h-[80px]"
+              placeholder="资产配置&#10;定投实战&#10;客户经营&#10;宏观研判"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-[#6b7c8d] mb-1">认证体系（课程关联用，如：初级投顾必修）</label>
+            <textarea
+              value={certificationStr}
+              onChange={(e) => setCertificationStr(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg min-h-[60px]"
+              placeholder="初级投顾必修&#10;资深投顾进阶"
+            />
+          </div>
+          <button onClick={handleSaveAcademy} disabled={saving === 'academy'} className="px-4 py-2 bg-[#1e3a5f] text-white rounded-lg text-sm">
+            {saving === 'academy' ? '保存中...' : '保存分类'}
           </button>
         </div>
       </section>

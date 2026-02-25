@@ -178,19 +178,21 @@ export default function Classroom() {
         <section className="mb-6">
           <p className="text-sm text-[#6b7c8d] mb-3">分类查找：</p>
           <div className="flex flex-wrap gap-2">
-            {categoryTabs.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCat(selectedCat === cat ? '' : cat)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedCat === cat
-                    ? 'bg-[var(--owl-primary)] text-white'
-                    : 'bg-white text-[#6b7c8d] border border-gray-200 hover:border-[var(--owl-primary)]'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {categoryTabs.map((cat) => {
+              const isSelected = selectedCat === cat
+              const btnClass = isSelected
+                ? 'px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--owl-primary)] text-white'
+                : 'px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-white text-[#6b7c8d] border border-gray-200 hover:border-[var(--owl-primary)]'
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCat(isSelected ? '' : cat)}
+                  className={btnClass}
+                >
+                  {cat}
+                </button>
+              )
+            })}
           </div>
         </section>
 
@@ -234,54 +236,55 @@ export default function Classroom() {
           )}
         </section>
 
-        {/* 名师专栏 | 学习排行 */}
         <div className="grid md:grid-cols-2 gap-6">
           <section className="bg-white rounded-xl p-5 shadow-sm border border-gray-50">
             <h3 className="font-semibold text-[#1a2b3c] mb-4">名师专栏</h3>
             <div className="space-y-4">
-              {instructors.slice(0, 4).map((inst) => (
-                <div
-                  key={inst.id}
-                  className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg"
-                  onClick={() => navigate('/classroom')}
-                >
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
-                    {inst.avatarUrl ? (
-                      <img src={inst.avatarUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-lg text-[var(--owl-primary)]">
-                        {inst.name.slice(0, 1)}
-                      </div>
-                    )}
+              {instructors.slice(0, 4).map((inst) => {
+                const nameTitle = inst.name + ' - ' + inst.title
+                return (
+                  <div
+                    key={inst.id}
+                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg"
+                    onClick={() => navigate('/classroom')}
+                  >
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                      {inst.avatarUrl ? (
+                        <img src={inst.avatarUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-lg text-[var(--owl-primary)]">
+                          {inst.name.slice(0, 1)}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-[#1a2b3c]">{nameTitle}</p>
+                      {inst.bio ? <p className="text-xs text-[#6b7c8d] truncate max-w-[200px]">{inst.bio}</p> : null}
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-[#1a2b3c]">{inst.name}-{inst.title}</p>
-                    {inst.bio && <p className="text-xs text-[#6b7c8d] truncate max-w-[200px]">{inst.bio}</p>}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </section>
           <section className="bg-white rounded-xl p-5 shadow-sm border border-gray-50">
             <h3 className="font-semibold text-[#1a2b3c] mb-4">学习排行</h3>
             <div className="space-y-3">
-              {LEADERBOARD.map((item, idx) => (
-                <div key={item.name} className="flex items-center gap-3">
-                  <span
-                    className={
-                      idx === 0
-                        ? 'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium bg-amber-100 text-amber-800'
-                        : 'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium bg-gray-100 text-gray-600'
-                    }
-                  >
-                    {idx + 1}
-                  </span>
-                  <span className="font-medium text-[#1a2b3c]">{item.name}</span>
-                  <span className="text-sm text-[#6b7c8d] ml-auto">{item.hours}h</span>
-                </div>
-              ))}
+              {LEADERBOARD.map((item, idx) => {
+                const rankClass = idx === 0 ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600'
+                return (
+                  <div key={item.name} className="flex items-center gap-3">
+                    <span className={'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ' + rankClass}>
+                      {idx + 1}
+                    </span>
+                    <span className="font-medium text-[#1a2b3c]">{item.name}</span>
+                    <span className="text-sm text-[#6b7c8d] ml-auto">{item.hours}h</span>
+                  </div>
+                )
+              })}
             </div>
           </section>
         </div>
       </div>
     </div>
+  )
+}

@@ -16,6 +16,12 @@ const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 const defaultEvent = (): AdminRoadshowEvent => ({
   id: 0,
   title: '',
+  topic: '',
+  content: '',
+  summary: '',
+  speaker: '',
+  posterUrl: null,
+  location: '线上',
   startTime: new Date().toISOString().slice(0, 16).replace('T', ' '),
   durationMinutes: 60,
   status: '预热中',
@@ -186,10 +192,10 @@ export default function AdminRoadshow() {
               <thead>
                 <tr className="border-b border-gray-200 text-left text-[#6b7c8d]">
                   <th className="pb-2 pr-4">标题</th>
-                  <th className="pb-2 pr-4">开始时间</th>
+                  <th className="pb-2 pr-4">主讲</th>
+                  <th className="pb-2 pr-4">日期时间</th>
                   <th className="pb-2 pr-4">时长</th>
-                  <th className="pb-2 pr-4">自动状态</th>
-                  <th className="pb-2 pr-4">预约</th>
+                  <th className="pb-2 pr-4">状态</th>
                   <th className="pb-2 pr-4">冲突</th>
                   <th className="pb-2"></th>
                 </tr>
@@ -205,10 +211,10 @@ export default function AdminRoadshow() {
                   events.map((ev) => (
                     <tr key={ev.id} className="border-b border-gray-100">
                       <td className="py-2 pr-4 font-medium">{ev.title || '—'}</td>
-                      <td className="py-2 pr-4">{ev.startTime || '—'}</td>
+                      <td className="py-2 pr-4 text-sm">{ev.speaker || '—'}</td>
+                      <td className="py-2 pr-4 text-sm">{ev.startTime || '—'}</td>
                       <td className="py-2 pr-4">{ev.durationMinutes}分钟</td>
                       <td className="py-2 pr-4">{computeRoadshowDisplayStatus(ev)}</td>
-                      <td className="py-2 pr-4">{ev.reservationEnabled ? `底数${ev.reservationBaseCount}+真实${ev.reservationRealCount}` : '否'}</td>
                       <td className="py-2 pr-4">{conflictMap[ev.id] ? <span className="text-amber-600">有</span> : '—'}</td>
                       <td className="py-2">
                         <button onClick={() => openEdit(ev)} className="text-[#1e3a5f] mr-2">编辑</button>
@@ -268,15 +274,87 @@ export default function AdminRoadshow() {
             <h4 className="font-medium text-[#1a2b3c] mb-4">{editing ? '编辑场次' : '新增场次'}</h4>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-[#6b7c8d] mb-1">活动标题 *</label>
-                <input
-                  type="text"
-                  value={form.title}
-                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="如：猫头鹰策略会-2月专场"
-                />
+              {/* 基础信息 */}
+              <div className="border-b pb-3">
+                <h5 className="text-sm font-medium text-[#1a2b3c] mb-2">基础信息</h5>
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-xs text-[#6b7c8d] mb-1">活动标题 *</label>
+                    <input
+                      type="text"
+                      value={form.title}
+                      onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      placeholder="如：猫头鹰策略会-2月专场"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-[#6b7c8d] mb-1">路演主题/副标题</label>
+                    <input
+                      type="text"
+                      value={form.topic ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, topic: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      placeholder="如：宏观策略与资产配置"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-[#6b7c8d] mb-1">主讲人/嘉宾</label>
+                    <input
+                      type="text"
+                      value={form.speaker ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, speaker: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      placeholder="如：首席策略师 张三"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-[#6b7c8d] mb-1">海报图（建议 16:9）</label>
+                    <input
+                      type="url"
+                      value={form.posterUrl ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, posterUrl: e.target.value.trim() || null }))}
+                      className="w-full px-3 py-2 border rounded-lg font-mono text-sm"
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-[#6b7c8d] mb-1">举办地点</label>
+                    <input
+                      type="text"
+                      value={form.location ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      placeholder="如：线上 / 上海浦东"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 内容 */}
+              <div className="border-b pb-3">
+                <h5 className="text-sm font-medium text-[#1a2b3c] mb-2">路演内容</h5>
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-xs text-[#6b7c8d] mb-1">摘要（列表展示用）</label>
+                    <input
+                      type="text"
+                      value={form.summary ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, summary: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      placeholder="简短描述，用于卡片/列表"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-[#6b7c8d] mb-1">内容详情</label>
+                    <textarea
+                      value={form.content ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg min-h-[80px]"
+                      placeholder="路演内容、议程、亮点等"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="border-t pt-3">

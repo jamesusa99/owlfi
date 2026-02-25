@@ -152,6 +152,12 @@ export async function getRoadshowConfigForApp(): Promise<{ title: string; path: 
 export interface RoadshowEventForApp {
   id: number
   title: string
+  topic?: string
+  summary?: string
+  content?: string
+  speaker?: string
+  posterUrl?: string | null
+  location?: string
   startTime: string
   date: string
   time: string
@@ -173,6 +179,12 @@ export async function getRoadshowEventsForApp(): Promise<RoadshowEventForApp[]> 
     return {
       id: e.id,
       title: e.title,
+      topic: e.topic,
+      summary: e.summary,
+      content: e.content,
+      speaker: e.speaker,
+      posterUrl: e.posterUrl,
+      location: e.location,
       startTime: e.startTime,
       date: date.slice(0, 10),
       time: time.slice(0, 5),

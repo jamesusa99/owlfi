@@ -70,6 +70,12 @@ export interface RoadshowMaterial {
 export interface AdminRoadshowEvent {
   id: number
   title: string
+  topic?: string
+  content?: string
+  summary?: string
+  speaker?: string
+  posterUrl?: string | null
+  location?: string
   startTime: string
   durationMinutes: number
   status: RoadshowStatus
@@ -661,6 +667,12 @@ function roadshowEventFromRow(r: Record<string, unknown>): AdminRoadshowEvent {
   return {
     id: Number(r.id),
     title: String(r.title ?? ''),
+    topic: String(r.topic ?? ''),
+    content: String(r.content ?? ''),
+    summary: String(r.summary ?? ''),
+    speaker: String(r.speaker ?? ''),
+    posterUrl: r.poster_url != null ? String(r.poster_url) : null,
+    location: String(r.location ?? ''),
     startTime: startStr,
     durationMinutes: Number(r.duration_minutes ?? 60),
     status: (r.status as RoadshowStatus) || '预热中',
@@ -695,6 +707,12 @@ export async function saveRoadshowEvent(ev: AdminRoadshowEvent): Promise<void> {
   const startIso = ev.startTime.trim().replace(' ', 'T').slice(0, 19)
   const row = {
     title: ev.title,
+    topic: ev.topic ?? '',
+    content: ev.content ?? '',
+    summary: ev.summary ?? '',
+    speaker: ev.speaker ?? '',
+    poster_url: ev.posterUrl ?? null,
+    location: ev.location ?? '',
     start_time: startIso + (startIso.length <= 16 ? ':00' : ''),
     duration_minutes: ev.durationMinutes,
     status: ev.status,

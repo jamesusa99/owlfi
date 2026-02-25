@@ -43,14 +43,39 @@ export default function RoadshowDetail() {
         <span className="inline-block px-2 py-0.5 bg-[var(--owl-primary)]/10 text-[var(--owl-primary)] text-xs rounded mb-4">
           {event.status}
         </span>
-        <h1 className="text-xl font-bold text-[var(--owl-text)] mb-4">{event.title}</h1>
+        {event.posterUrl && (
+          <img
+            src={event.posterUrl}
+            alt={event.title}
+            className="w-full rounded-xl mb-4 aspect-video object-cover"
+          />
+        )}
+        <h1 className="text-xl font-bold text-[var(--owl-text)] mb-2">{event.title}</h1>
+        {event.topic && (
+          <p className="text-base text-[var(--owl-text)] font-medium mb-4">{event.topic}</p>
+        )}
         <div className="space-y-2 text-sm text-[var(--owl-text-muted)] mb-4">
+          {event.speaker && <p>主讲人：{event.speaker}</p>}
           <p>时间：{event.date} {event.time}</p>
           {event.durationMinutes > 0 && <p>时长：{event.durationMinutes} 分钟</p>}
+          {event.location && <p>地点：{event.location}</p>}
           {event.reservationEnabled && (
             <p>预约人数：{event.reservationBaseCount + event.reservationRealCount}</p>
           )}
         </div>
+        {event.summary && (
+          <div className="border-t border-gray-100 pt-4 mt-4">
+            <p className="text-sm text-[var(--owl-text)] leading-relaxed whitespace-pre-wrap">{event.summary}</p>
+          </div>
+        )}
+        {event.content && (
+          <div className="border-t border-gray-100 pt-4 mt-4">
+            <h3 className="font-medium text-[var(--owl-text)] mb-2">路演内容</h3>
+            <div className="text-sm text-[var(--owl-text)] leading-relaxed whitespace-pre-wrap prose prose-sm max-w-none">
+              {event.content}
+            </div>
+          </div>
+        )}
       </div>
       {hasLink && (
         <a

@@ -123,20 +123,33 @@ export default function RoadshowCalendar() {
                 <div
                   key={e.id}
                   onClick={() => navigate(`/roadshow/${e.id}`)}
-                  className="bg-white rounded-2xl p-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                  className="bg-white rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-shadow overflow-hidden flex"
                 >
-                  <div className="flex justify-between items-start">
+                  {e.posterUrl && (
+                    <img
+                      src={e.posterUrl}
+                      alt={e.title}
+                      className="w-24 min-h-[100px] object-cover flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 flex justify-between items-start p-5 min-w-0">
                     <div>
                       <span className="inline-block px-2 py-0.5 bg-[var(--owl-primary)]/10 text-[var(--owl-primary)] text-xs rounded mb-2">
                         {e.status}
                       </span>
                       <h3 className="font-medium text-[var(--owl-text)] mb-1">{e.title}</h3>
+                      {e.speaker && (
+                        <p className="text-xs text-[var(--owl-text-muted)] mb-1">主讲：{e.speaker}</p>
+                      )}
                       <p className="text-sm text-[var(--owl-text-muted)]">
                         {e.date} {e.time}
                         {e.durationMinutes > 0 && ` · ${e.durationMinutes}分钟`}
                       </p>
+                      {e.topic && (
+                        <p className="text-sm text-[var(--owl-text)] mt-1 truncate">{e.topic}</p>
+                      )}
                     </div>
-                    <span className="text-[var(--owl-primary)]">›</span>
+                    <span className="text-[var(--owl-primary)] flex-shrink-0 ml-2">›</span>
                   </div>
                 </div>
               ))}
@@ -208,20 +221,33 @@ export default function RoadshowCalendar() {
               <div
                 key={e.id}
                 onClick={() => navigate(`/roadshow/${e.id}`)}
-                className="bg-white rounded-2xl p-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                className="bg-white rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-shadow overflow-hidden flex"
               >
-                <div className="flex justify-between items-start">
+                {e.posterUrl && (
+                  <img
+                    src={e.posterUrl}
+                    alt={e.title}
+                    className="w-24 min-h-[100px] object-cover flex-shrink-0"
+                  />
+                )}
+                <div className="flex-1 flex justify-between items-start p-5 min-w-0">
                   <div>
                     <span className="inline-block px-2 py-0.5 bg-[var(--owl-primary)]/10 text-[var(--owl-primary)] text-xs rounded mb-2">
                       {e.status}
                     </span>
                     <h3 className="font-medium text-[var(--owl-text)] mb-1">{e.title}</h3>
+                    {e.speaker && (
+                      <p className="text-xs text-[var(--owl-text-muted)] mb-1">主讲：{e.speaker}</p>
+                    )}
                     <p className="text-sm text-[var(--owl-text-muted)]">
                       {e.date} {e.time}
                       {e.durationMinutes > 0 && ` · ${e.durationMinutes}分钟`}
                     </p>
+                    {e.topic && (
+                      <p className="text-sm text-[var(--owl-text)] mt-1 truncate">{e.topic}</p>
+                    )}
                   </div>
-                  <span className="text-[var(--owl-primary)]">›</span>
+                  <span className="text-[var(--owl-primary)] flex-shrink-0 ml-2">›</span>
                 </div>
               </div>
             ))}
